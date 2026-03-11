@@ -1,0 +1,6 @@
+[submodule "Sazami"]
+	path = Sazami
+	url = https://github.com/Nisoku/Sazami
+[submodule "Satori"]
+	path = Satori
+	url = https://github.com/Nisoku/Satori
