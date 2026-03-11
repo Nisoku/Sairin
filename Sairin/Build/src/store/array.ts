@@ -65,7 +65,7 @@ export class ReactiveArray<T> {
     return this.lengthSignal.peek();
   }
 
-  splice(start: number, deleteCount?: number, ...items: T[]): T[] {
+  splice(start: number, deleteCount: number = this.lengthSignal.peek(), ...items: T[]): T[] {
     let deleted: T[] = [];
     this.update((arr) => {
       const newArr = [...arr];

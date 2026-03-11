@@ -59,5 +59,11 @@ export function toRaw<T>(reactiveObj: ReactiveObject<T>): T {
 }
 
 export function setReactive<T extends object>(reactiveObj: ReactiveObject<T>, value: T): void {
+  for (const key of Object.keys(value) as (keyof T)[]) {
+    const propSignal = reactiveObj[key];
+    if (propSignal && propSignal instanceof Signal) {
+      (propSignal as Signal<any>).set(value[key]);
+    }
+  }
   reactiveObj.$.set(value);
 }

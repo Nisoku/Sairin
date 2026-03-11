@@ -1,26 +1,24 @@
-import { onCleanup } from '../kernel/effect';
-
 export interface Context<T> {
   defaultValue: T;
-  Provider: (props: { value: T; children?: any }) => void;
+  Provider: (props: { value: T; children?: any }) => () => void;
   consume: () => T;
 }
 
 const contextStacks = new Map<symbol, any[]>();
 
-export function createContext<T>(defaultValue: T): Context<T> {
-  const contextId = Symbol();
+export function createContext<T>(defaultValue: T, name?: string): Context<T> {
+  const contextId = Symbol(name);
   contextStacks.set(contextId, [defaultValue]);
 
   return {
     defaultValue,
-    Provider: ({ value, children }: { value: T; children?: any }) => {
+    Provider: ({ value }: { value: T; children?: any }) => {
       const stack = contextStacks.get(contextId)!;
       stack.push(value);
       
-      onCleanup(() => {
+      return () => {
         stack.pop();
-      });
+      };
     },
     consume: () => {
       const stack = contextStacks.get(contextId);
@@ -41,6 +39,10 @@ export function useContext<T>(context: Context<T>): T {
   return context.consume();
 }
 
+export function useContextProvider<T>(context: Context<T>, value: T): () => void {
+  return context.Provider({ value });
+}
+
 export interface CreateContextOptions<T> {
   name?: string;
   strict?: boolean;
@@ -48,7 +50,7 @@ export interface CreateContextOptions<T> {
 
 export function createContextWithOptions<T>(
   defaultValue: T,
-  _options?: CreateContextOptions<T>
+  options?: CreateContextOptions<T>
 ): Context<T> {
-  return createContext(defaultValue);
+  return createContext(defaultValue, options?.name);
 }

@@ -1,18 +1,25 @@
 import { Subscriber, trackDependency, generateId, getGlobalActiveComputation, setGlobalActiveComputation } from './dependency';
 import { Signal } from './signal';
 
+export interface DerivedOptions {
+  eager?: boolean;
+}
+
 export class Derived<T> {
   readonly id: number;
   private compute: () => T;
   private cached: T | undefined;
   private dirty = true;
   private subscribers = new Set<Subscriber>();
-  private dependencies = new Set<Signal<any>>();
+  private unsubscribeFns: (() => void)[] = [];
 
-  constructor(fn: () => T) {
+  constructor(fn: () => T, options: DerivedOptions = {}) {
     this.id = generateId();
     this.compute = fn;
-    this.recompute();
+
+    if (options.eager) {
+      this.recompute();
+    }
   }
 
   private recompute(): void {
@@ -23,19 +30,11 @@ export class Derived<T> {
       this.notifySubscribers();
     };
 
+    this.unsubscribeFns.forEach(fn => fn());
+    this.unsubscribeFns = [];
+
     setGlobalActiveComputation(tracker);
     
-    this.dependencies.forEach((dep) => {
-      dep.unsubscribe(tracker);
-    });
-    this.dependencies.clear();
-
-    const activeComp = () => {
-      const result = this.compute();
-      this.cached = result;
-    };
-    
-    setGlobalActiveComputation(activeComp);
     try {
       this.cached = this.compute();
     } finally {
@@ -84,6 +83,6 @@ export class Derived<T> {
   }
 }
 
-export function derived<T>(fn: () => T): Derived<T> {
-  return new Derived(fn);
+export function derived<T>(fn: () => T, options?: DerivedOptions): Derived<T> {
+  return new Derived(fn, options);
 }

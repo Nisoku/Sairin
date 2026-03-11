@@ -1,4 +1,5 @@
 import { Signal, signal } from '../kernel/signal';
+import { effect } from '../kernel/effect';
 
 let isTransition = false;
 const transitionStack: boolean[] = [];
