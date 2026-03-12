@@ -4,6 +4,3 @@
 [submodule "Satori"]
 	path = Satori
 	url = https://github.com/Nisoku/Satori
-[submodule "Sakko"]
-	path = Sakko
-	url = https://github.com/Nisoku/Sakko
