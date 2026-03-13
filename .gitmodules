@@ -4,3 +4,6 @@
 [submodule "Sakko"]
 	path = Sakko
 	url = https://github.com/Nisoku/Sakko
+[submodule "Sazami"]
+	path = Sazami
+	url = htps:/github.com/Nisoku/Sazami
