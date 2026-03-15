@@ -1,12 +1,21 @@
-import { reactive, isReactive, toRaw, setReactive, type ReactiveObject } from './reactive';
-import { ReactiveArray, reactiveArray } from './array';
-import { ReactiveMap, reactiveMap } from './map';
+import {
+  reactive,
+  isReactive,
+  toRaw,
+  setReactive,
+  type ReactiveObject,
+} from "./reactive";
+import { ReactiveArray, reactiveArray } from "./array";
+import { ReactiveMap, reactiveMap } from "./map";
 
 export function createStore<T extends object>(initial: T): ReactiveObject<T> {
   return reactive(initial);
 }
 
-export function updateStore<T extends object>(store: ReactiveObject<T>, value: Partial<T>): void {
+export function updateStore<T extends object>(
+  store: ReactiveObject<T>,
+  value: Partial<T>,
+): void {
   const current = toRaw(store);
   setReactive(store, { ...current, ...value } as T);
 }
@@ -28,5 +37,5 @@ export {
   ReactiveArray,
   reactiveArray,
   ReactiveMap,
-  reactiveMap
+  reactiveMap,
 };

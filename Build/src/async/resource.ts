@@ -1,5 +1,12 @@
-import { Signal, signal } from '../kernel/signal';
-import { effect, onCleanup } from '../kernel/effect';
+import { Signal, signal } from "../kernel/signal";
+import { effect, onCleanup } from "../kernel/effect";
+import { path } from "../kernel/path";
+
+let resourceId = 0;
+
+function nextResourceId(): string {
+  return (++resourceId).toString(36);
+}
 
 export interface Resource<T> {
   value: Signal<T | null>;
@@ -9,16 +16,20 @@ export interface Resource<T> {
   abort: () => void;
 }
 
-export function resource<T>(loader: () => Promise<T>, initialValue: T | null = null): Resource<T> {
-  const value = signal<T | null>(initialValue);
-  const loading = signal(true);
-  const error = signal<Error | null>(null);
+export function resource<T>(
+  loader: () => Promise<T>,
+  initialValue: T | null = null,
+): Resource<T> {
+  const id = nextResourceId();
+  const value = signal<T | null>(path("resource", id, "value"), initialValue);
+  const loading = signal(path("resource", id, "loading"), true);
+  const error = signal<Error | null>(path("resource", id, "error"), null);
   let abortController: AbortController | null = null;
 
   const load = () => {
     abortController?.abort();
     abortController = new AbortController();
-    
+
     loading.set(true);
     error.set(null);
 
@@ -55,11 +66,12 @@ export function resource<T>(loader: () => Promise<T>, initialValue: T | null = n
 
 export function resourceWithSignal<T>(
   source: Signal<(() => Promise<T>) | null>,
-  initialValue: T | null = null
+  initialValue: T | null = null,
 ): Resource<T> {
-  const value = signal<T | null>(initialValue);
-  const loading = signal(false);
-  const error = signal<Error | null>(null);
+  const id = nextResourceId();
+  const value = signal<T | null>(path("resource", id, "value"), initialValue);
+  const loading = signal(path("resource", id, "loading"), false);
+  const error = signal<Error | null>(path("resource", id, "error"), null);
   let abortController: AbortController | null = null;
   let currentLoader: (() => Promise<T>) | null = null;
 
@@ -67,7 +79,7 @@ export function resourceWithSignal<T>(
     abortController?.abort();
     abortController = new AbortController();
     currentLoader = loader;
-    
+
     loading.set(true);
     error.set(null);
 
@@ -120,8 +132,8 @@ export interface SuspenseConfig {
 }
 
 export class SuspenseBoundary {
-  private loading = signal(false);
-  private error: Signal<Error | null> = signal(null);
+  private loading = signal(path("suspense", "loading"), false);
+  private error: Signal<Error | null> = signal(path("suspense", "error"), null);
   private fallback: any;
 
   constructor(config: SuspenseConfig) {

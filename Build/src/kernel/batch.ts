@@ -20,7 +20,7 @@ export function scheduleEffect(fn: EffectFn): void {
 export function batch(fn: () => void): void {
   const previousDepth = batchDepth;
   batchDepth++;
-  
+
   try {
     fn();
   } finally {
@@ -39,4 +39,10 @@ export function isFlushing(): boolean {
 
 export function hasPendingEffects(): boolean {
   return pendingEffects.size > 0;
+}
+
+export function __resetBatchForTesting(): void {
+  pendingEffects.clear();
+  flushScheduled = false;
+  batchDepth = 0;
 }

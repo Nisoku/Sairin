@@ -1,17 +1,29 @@
-import { Signal, signal, Subscriber, trackDependency } from '../kernel';
+import { Signal, signal, Subscriber, trackDependency } from "../kernel";
+import { path } from "../kernel/path";
+
+let arrayId = 0;
+
+function nextArrayId(): string {
+  return (++arrayId).toString(36);
+}
 
 export class ReactiveArray<T> {
+  private id: string;
   private itemsSignal: Signal<T[]>;
   private lengthSignal: Signal<number>;
   private subscribers = new Set<Subscriber>();
 
   constructor(initial: T[] = []) {
-    this.itemsSignal = signal(initial);
-    this.lengthSignal = signal(initial.length);
+    this.id = nextArrayId();
+    this.itemsSignal = signal(path("array", this.id, "items"), initial);
+    this.lengthSignal = signal(
+      path("array", this.id, "length"),
+      initial.length,
+    );
   }
 
   private notify(): void {
-    this.subscribers.forEach(fn => fn());
+    this.subscribers.forEach((fn) => fn());
   }
 
   private update(fn: (arr: T[]) => T[]): void {
@@ -21,128 +33,120 @@ export class ReactiveArray<T> {
     this.notify();
   }
 
+  get length(): number {
+    return this.lengthSignal.get();
+  }
+
   get(index: number): T | undefined {
-    trackDependency(this.itemsSignal);
-    const items = this.itemsSignal.peek();
+    const items = this.itemsSignal.get();
     return items[index];
   }
 
   set(index: number, value: T): void {
-    this.update((arr) => {
-      const newArr = [...arr];
-      newArr[index] = value;
-      return newArr;
-    });
+    const items = [...this.itemsSignal.peek()];
+    items[index] = value;
+    this.itemsSignal.set(items);
+    this.notify();
   }
 
-  push(...items: T[]): number {
-    this.update((arr) => [...arr, ...items]);
-    return this.lengthSignal.peek();
+  push(...values: T[]): number {
+    this.update((arr) => [...arr, ...values]);
+    return this.lengthSignal.get();
   }
 
   pop(): T | undefined {
-    let popped: T | undefined;
+    let result: T | undefined;
     this.update((arr) => {
-      const newArr = [...arr];
-      popped = newArr.pop();
-      return newArr;
+      result = arr[arr.length - 1];
+      return arr.slice(0, -1);
     });
-    return popped;
+    return result;
   }
 
   shift(): T | undefined {
-    let shifted: T | undefined;
+    let result: T | undefined;
     this.update((arr) => {
-      const newArr = [...arr];
-      shifted = newArr.shift();
-      return newArr;
+      result = arr[0];
+      return arr.slice(1);
     });
-    return shifted;
+    return result;
   }
 
-  unshift(...items: T[]): number {
-    this.update((arr) => [...items, ...arr]);
-    return this.lengthSignal.peek();
-  }
-
-  splice(start: number, deleteCount: number = this.lengthSignal.peek(), ...items: T[]): T[] {
-    let deleted: T[] = [];
-    this.update((arr) => {
-      const newArr = [...arr];
-      deleted = newArr.splice(start, deleteCount, ...items);
-      return newArr;
-    });
-    return deleted;
-  }
-
-  map<R>(fn: (item: T, index: number) => R): R[] {
-    return this.itemsSignal.peek().map(fn);
-  }
-
-  filter(fn: (item: T, index: number) => boolean): T[] {
-    return this.itemsSignal.peek().filter(fn);
-  }
-
-  reduce<R>(fn: (acc: R, item: T, index: number) => R, initial: R): R {
-    return this.itemsSignal.peek().reduce(fn, initial);
-  }
-
-  find(fn: (item: T, index: number) => boolean): T | undefined {
-    return this.itemsSignal.peek().find(fn);
-  }
-
-  findIndex(fn: (item: T, index: number) => boolean): number {
-    return this.itemsSignal.peek().findIndex(fn);
-  }
-
-  includes(searchElement: T, fromIndex?: number): boolean {
-    return this.itemsSignal.peek().includes(searchElement, fromIndex);
-  }
-
-  indexOf(searchElement: T, fromIndex?: number): number {
-    return this.itemsSignal.peek().indexOf(searchElement, fromIndex);
-  }
-
-  every(fn: (item: T, index: number) => boolean): boolean {
-    return this.itemsSignal.peek().every(fn);
-  }
-
-  some(fn: (item: T, index: number) => boolean): boolean {
-    return this.itemsSignal.peek().some(fn);
-  }
-
-  get length(): number {
-    trackDependency(this.lengthSignal);
-    return this.lengthSignal.peek();
-  }
-
-  toArray(): T[] {
-    trackDependency(this.itemsSignal);
-    return [...this.itemsSignal.peek()];
-  }
-
-  subscribe(fn: Subscriber): () => void {
-    this.subscribers.add(fn);
-    return () => this.subscribers.delete(fn);
+  unshift(...values: T[]): number {
+    this.update((arr) => [...values, ...arr]);
+    return this.lengthSignal.get();
   }
 
   clear(): void {
     this.update(() => []);
   }
 
-  reverse(): void {
-    this.update((arr) => [...arr].reverse());
+  splice(start: number, deleteCount?: number, ...items: T[]): T[] {
+    const deleted: T[] = [];
+    this.update((arr) => {
+      const result = [...arr];
+      deleted.push(...result.splice(start, deleteCount ?? 0, ...items));
+      return result;
+    });
+    return deleted;
   }
 
-  sort(compareFn?: (a: T, b: T) => number): void {
-    this.update((arr) => [...arr].sort(compareFn));
+  filter(predicate: (value: T, index: number) => boolean): T[] {
+    return this.itemsSignal.get().filter(predicate);
+  }
+
+  map<U>(fn: (value: T, index: number) => U): U[] {
+    return this.itemsSignal.get().map(fn);
+  }
+
+  reduce<U>(fn: (acc: U, value: T, index: number) => U, initial: U): U {
+    return this.itemsSignal.get().reduce(fn, initial);
+  }
+
+  find(predicate: (value: T, index: number) => boolean): T | undefined {
+    return this.itemsSignal.get().find(predicate);
+  }
+
+  findIndex(predicate: (value: T, index: number) => boolean): number {
+    return this.itemsSignal.get().findIndex(predicate);
+  }
+
+  includes(searchElement: T): boolean {
+    return this.itemsSignal.get().includes(searchElement);
+  }
+
+  indexOf(searchElement: T): number {
+    return this.itemsSignal.get().indexOf(searchElement);
+  }
+
+  some(predicate: (value: T, index: number) => boolean): boolean {
+    return this.itemsSignal.get().some(predicate);
+  }
+
+  every(predicate: (value: T, index: number) => boolean): boolean {
+    return this.itemsSignal.get().every(predicate);
+  }
+
+  toArray(): T[] {
+    return [...this.itemsSignal.get()];
+  }
+
+  subscribe(fn: Subscriber): () => void {
+    this.subscribers.add(fn);
+    return () => {
+      this.subscribers.delete(fn);
+    };
+  }
+
+  unsubscribe(fn: Subscriber): void {
+    this.subscribers.delete(fn);
   }
 
   [Symbol.iterator](): Iterator<T> {
-    return this.itemsSignal.peek()[Symbol.iterator]();
+    return this.itemsSignal.get()[Symbol.iterator]();
   }
 }
 
-export function reactiveArray<T>(initial: T[] = []): ReactiveArray<T> {
-  return new ReactiveArray(initial);
+export function reactiveArray<T>(items?: T[]): ReactiveArray<T> {
+  return new ReactiveArray(items);
 }
