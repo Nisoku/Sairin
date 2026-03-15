@@ -25,7 +25,7 @@ export {
   joinPath,
   type PathKey,
 } from "./path";
-export { path as Path }; // Re-export for convenience
+export { path as createPath }; // Re-export path factory with clearer name
 export {
   getNode,
   hasNode,

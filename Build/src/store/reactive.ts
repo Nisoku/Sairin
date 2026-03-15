@@ -7,6 +7,11 @@ function nextStoreId(): string {
   return (++storeId).toString(36);
 }
 
+// Test helper to reset id counter
+export function __resetStoreIdForTesting(): void {
+  storeId = 0;
+}
+
 export type ReactiveObject<T> = {
   [K in keyof T]: T[K] extends object ? ReactiveObject<T[K]> : Signal<T[K]>;
 } & {

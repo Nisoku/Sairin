@@ -59,6 +59,13 @@ export function getOrCreateNode<T>(
     nodeRegistry.set(key, node);
   }
 
+  // If an existing node is found, ensure its kind matches the requested kind.
+  if (node.kind !== kind) {
+    throw new TypeError(
+      `Node kind mismatch for path "${key}": existing=${node.kind} requested=${kind}`,
+    );
+  }
+
   return node;
 }
 
@@ -121,7 +128,10 @@ export function getNodesUnder(prefix: PathKey): ReactiveNode[] {
   const prefixStr = prefix.raw;
 
   for (const node of nodeRegistry.values()) {
-    if (node.path.raw.startsWith(prefixStr) || matchesPath(prefix, node.path)) {
+    // Ensure startsWith is a path-prefix check: either exact match or
+    // followed by a '/'. This avoids matching '/foobar' for prefix '/foo'.
+    const startsWithPrefix = node.path.raw === prefixStr || node.path.raw.startsWith(prefixStr + "/");
+    if (startsWithPrefix || matchesPath(prefix, node.path)) {
       result.push(node);
     }
   }
@@ -305,6 +315,7 @@ export function assertLock(
 }
 
 let cleanupScheduled = false;
+const scheduledCleanupNodes: ReactiveNode[] = [];
 const CLEANUP_CHUNK_SIZE = 10;
 const CLEANUP_WARN_THRESHOLD_MS = 100;
 
@@ -313,12 +324,15 @@ export function scheduleIncrementalCleanup(
   options: { chunkSize?: number } = {},
 ): void {
   const chunkSize = options.chunkSize ?? CLEANUP_CHUNK_SIZE;
+  // Accumulate into the shared scheduled buffer so multiple calls
+  // before the microtask runs are coalesced.
+  scheduledCleanupNodes.push(...nodes);
   let index = 0;
   const startTime = Date.now();
   const logger = getSairinLogger();
 
   const cleanupChunk = () => {
-    const chunk = nodes.slice(index, index + chunkSize);
+    const chunk = scheduledCleanupNodes.slice(index, index + chunkSize);
     for (const node of chunk) {
       node.subscribers.clear();
       if (node.kind === "derived") {
@@ -328,7 +342,7 @@ export function scheduleIncrementalCleanup(
     }
     index += chunkSize;
 
-    if (index < nodes.length) {
+    if (index < scheduledCleanupNodes.length) {
       const elapsed = Date.now() - startTime;
       if (elapsed > CLEANUP_WARN_THRESHOLD_MS && logger) {
         logger.warn(`Incremental cleanup falling behind: ${elapsed}ms elapsed`, { tags: ["memory", "gc"] });
@@ -342,6 +356,10 @@ export function scheduleIncrementalCleanup(
     queueMicrotask(() => {
       cleanupScheduled = false;
       cleanupChunk();
+      // When finished, clear the scheduled buffer to avoid memory retention
+      if (scheduledCleanupNodes.length <= index) {
+        scheduledCleanupNodes.length = 0;
+      }
     });
   }
 }

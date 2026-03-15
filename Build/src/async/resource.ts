@@ -28,24 +28,25 @@ export function resource<T>(
 
   const load = () => {
     abortController?.abort();
-    abortController = new AbortController();
+    const currentController = new AbortController();
+    abortController = currentController;
 
     loading.set(true);
     error.set(null);
 
     loader()
       .then((data) => {
-        if (!abortController!.signal.aborted) {
+        if (!currentController.signal.aborted && abortController === currentController) {
           value.set(data);
         }
       })
       .catch((e) => {
-        if (!abortController!.signal.aborted) {
+        if (!currentController.signal.aborted && abortController === currentController) {
           error.set(e instanceof Error ? e : new Error(String(e)));
         }
       })
       .finally(() => {
-        if (!abortController!.signal.aborted) {
+        if (!currentController.signal.aborted && abortController === currentController) {
           loading.set(false);
         }
       });
@@ -77,7 +78,8 @@ export function resourceWithSignal<T>(
 
   const load = (loader: () => Promise<T>) => {
     abortController?.abort();
-    abortController = new AbortController();
+    const currentController = new AbortController();
+    abortController = currentController;
     currentLoader = loader;
 
     loading.set(true);
@@ -85,17 +87,17 @@ export function resourceWithSignal<T>(
 
     loader()
       .then((data) => {
-        if (!abortController!.signal.aborted && currentLoader === loader) {
+        if (!currentController.signal.aborted && abortController === currentController && currentLoader === loader) {
           value.set(data);
         }
       })
       .catch((e) => {
-        if (!abortController!.signal.aborted && currentLoader === loader) {
+        if (!currentController.signal.aborted && abortController === currentController && currentLoader === loader) {
           error.set(e instanceof Error ? e : new Error(String(e)));
         }
       })
       .finally(() => {
-        if (!abortController!.signal.aborted && currentLoader === loader) {
+        if (!currentController.signal.aborted && abortController === currentController && currentLoader === loader) {
           loading.set(false);
         }
       });
@@ -121,7 +123,11 @@ export function resourceWithSignal<T>(
       if (loader) load(loader);
     },
     abort: () => {
+      // Abort the active controller and ensure state is reset like finally
       abortController?.abort();
+      abortController = null;
+      loading.set(false);
+      error.set(null);
     },
   };
 }
@@ -132,8 +138,9 @@ export interface SuspenseConfig {
 }
 
 export class SuspenseBoundary {
-  private loading = signal(path("suspense", "loading"), false);
-  private error: Signal<Error | null> = signal(path("suspense", "error"), null);
+  private id = nextResourceId();
+  private loading = signal(path("suspense", this.id, "loading"), false);
+  private error: Signal<Error | null> = signal(path("suspense", this.id, "error"), null);
   private fallback: any;
 
   constructor(config: SuspenseConfig) {

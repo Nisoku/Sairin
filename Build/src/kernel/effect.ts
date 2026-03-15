@@ -55,9 +55,17 @@ function createEffect(fn: () => CleanupFn, schedule: ScheduleFn): () => void {
   const runner = () => {
     if (disposed) return;
 
+    // Prefer stack-based cleanup first; if cleanupStack contained functions
+    // they represent onCleanup-registered handlers. We run them and ignore
+    // the previous returned cleanupFn to avoid double-cleanup. If no stack
+    // cleanup ran, we invoke the previous cleanupFn (returned by the
+    // previous effect invocation).
+    const hadStackCleanup = cleanupStack.length > 0;
     runCleanup();
-    if (typeof cleanupFn === "function") {
-      cleanupFn();
+    if (!hadStackCleanup) {
+      if (typeof cleanupFn === "function") {
+        cleanupFn();
+      }
     }
 
     const prev = getGlobalActiveComputation();

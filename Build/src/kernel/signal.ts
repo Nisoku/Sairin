@@ -10,6 +10,7 @@ import {
   checkLock,
   resolveAlias,
   hasNode,
+  assertLock,
   type PathKey,
   type SignalNode,
 } from "./graph";
@@ -36,36 +37,11 @@ export class Signal<T> {
   }
 
   set(next: T, options?: { owner?: string }): void {
-    const config = getSairinConfig();
     const pathIsLocked = isLocked(this.path);
-    
     if (pathIsLocked) {
-      let canWrite = false;
-      if (options?.owner) {
-        canWrite = checkLock(this.path, options.owner);
-      }
-      
-      if (!canWrite) {
-        const logger = getSairinLogger();
-        const message = `Lock violation: cannot write to "${this.path.raw}", path is locked${options?.owner ? ` (attempted by: ${options.owner})` : ""}`;
-        
-        if (logger) {
-          if (config.lockViolation === "throw" || config.lockViolation === "warn") {
-            logger.error(message, { tags: ["lock", "write"] });
-          } else if (config.lockViolation === "silent") {
-            logger.debug(message, { tags: ["lock", "write"] });
-          }
-        } else if (config.lockViolation === "throw") {
-          console.error(message);
-        } else if (config.lockViolation === "warn") {
-          console.warn(message);
-        }
-
-        if (config.lockViolation === "throw") {
-          throw new Error(message);
-        }
-        return;
-      }
+      // Use centralized assertLock which will log/throw according to config
+      const attempted = options?.owner ?? "";
+      if (!assertLock(this.path, attempted, attempted)) return;
     }
     
     if (Object.is(this._node.value, next)) return;
@@ -73,8 +49,8 @@ export class Signal<T> {
     notifySubscribers(this._node);
   }
 
-  update(fn: (value: T) => T): void {
-    this.set(fn(this._node.value));
+  update(fn: (value: T) => T, options?: { owner?: string }): void {
+    this.set(fn(this._node.value), options);
   }
 
   subscribe(fn: Subscriber): () => void {
@@ -99,11 +75,7 @@ export class Signal<T> {
 }
 
 export function signal<T>(pathOrInitial: PathKey | T, initial?: T): Signal<T> {
-  if (
-    typeof pathOrInitial === "object" &&
-    pathOrInitial !== null &&
-    "segments" in pathOrInitial
-  ) {
+  if (isPathKey(pathOrInitial)) {
     let path = pathOrInitial as PathKey;
     const resolved = resolveAlias(path);
     if (resolved) {

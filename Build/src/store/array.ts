@@ -23,7 +23,9 @@ export class ReactiveArray<T> {
   }
 
   private notify(): void {
-    this.subscribers.forEach((fn) => fn());
+    for (const fn of this.subscribers) {
+      fn();
+    }
   }
 
   private update(fn: (arr: T[]) => T[]): void {
@@ -46,6 +48,8 @@ export class ReactiveArray<T> {
     const items = [...this.itemsSignal.peek()];
     items[index] = value;
     this.itemsSignal.set(items);
+    // Ensure lengthSignal is updated when setting beyond current length
+    this.lengthSignal.set(items.length);
     this.notify();
   }
 
@@ -85,7 +89,11 @@ export class ReactiveArray<T> {
     const deleted: T[] = [];
     this.update((arr) => {
       const result = [...arr];
-      deleted.push(...result.splice(start, deleteCount ?? 0, ...items));
+      // When deleteCount is undefined, JS splice deletes through the end
+      const effectiveDelete = deleteCount === undefined
+        ? Math.max(0, result.length - start)
+        : deleteCount;
+      deleted.push(...result.splice(start, effectiveDelete, ...items));
       return result;
     });
     return deleted;

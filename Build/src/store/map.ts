@@ -7,6 +7,31 @@ function nextMapId(): string {
   return (++mapId).toString(36);
 }
 
+// Stable per-key id assignment to avoid collisions when using String(key)
+const keyIdMap = new WeakMap<object, string>();
+const primitiveKeyIdMap = new Map<string | number | symbol, string>();
+let nextKeyId = 0;
+
+function keyToId<K>(key: K): string {
+  if ((typeof key === "object" || typeof key === "function") && key !== null) {
+    const obj = key as unknown as object;
+    let id = keyIdMap.get(obj);
+    if (!id) {
+      id = (++nextKeyId).toString(36);
+      keyIdMap.set(obj, id);
+    }
+    return id;
+  }
+  // primitives
+  const prim = String(key) as string | number | symbol;
+  let id = primitiveKeyIdMap.get(prim);
+  if (!id) {
+    id = (++nextKeyId).toString(36);
+    primitiveKeyIdMap.set(prim, id);
+  }
+  return id;
+}
+
 export class ReactiveMap<K, V> {
   private id: string;
   private entries = new Map<K, Signal<V>>();
@@ -17,7 +42,8 @@ export class ReactiveMap<K, V> {
     this.id = nextMapId();
     this.sizeSignal = signal(path("map", this.id, "size"), 0);
     for (const [key, value] of initial) {
-      this.entries.set(key, signal(path("map", this.id, String(key)), value));
+      const kid = keyToId(key as any);
+      this.entries.set(key, signal(path("map", this.id, kid), value));
     }
     this.sizeSignal.set(this.entries.size);
   }
@@ -35,7 +61,8 @@ export class ReactiveMap<K, V> {
     if (existing) {
       existing.set(value);
     } else {
-      this.entries.set(key, signal(path("map", this.id, String(key)), value));
+      const kid = keyToId(key as any);
+      this.entries.set(key, signal(path("map", this.id, kid), value));
       this.sizeSignal.set(this.entries.size);
     }
     this.notify();
@@ -69,19 +96,21 @@ export class ReactiveMap<K, V> {
   }
 
   values(): IterableIterator<V> {
-    const values: V[] = [];
-    for (const sig of this.entries.values()) {
-      values.push(sig.get());
+    function* gen(this: ReactiveMap<K, V>) {
+      for (const sig of this.entries.values()) {
+        yield sig.get();
+      }
     }
-    return values[Symbol.iterator]();
+    return gen.call(this);
   }
 
   entriesIterable(): IterableIterator<[K, V]> {
-    const result: [K, V][] = [];
-    for (const [key, sig] of this.entries.entries()) {
-      result.push([key, sig.get()]);
+    function* gen(this: ReactiveMap<K, V>) {
+      for (const [key, sig] of this.entries.entries()) {
+        yield [key, sig.get()] as [K, V];
+      }
     }
-    return result[Symbol.iterator]();
+    return gen.call(this);
   }
 
   forEach(fn: (value: V, key: K, map: ReactiveMap<K, V>) => void): void {

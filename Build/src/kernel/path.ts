@@ -31,6 +31,9 @@ export function path(...parts: (string | number)[]): PathKey {
     } else if (str === "") {
       throw new Error("Path segment cannot be empty");
     } else {
+      if (str.includes('/')) {
+        throw new Error("Path segment cannot contain '/'");
+      }
       segments.push(str);
     }
   }
@@ -58,11 +61,45 @@ export function matchesPath(pattern: PathKey, target: PathKey): boolean {
   }
 
   if (pattern.globType === "deep") {
-    const baseSegments = pattern.segments.filter(
-      (s) => s !== "*" && s !== "**",
-    );
-    const basePath = "/" + baseSegments.join("/");
-    return target.raw === basePath || target.raw.startsWith(basePath + "/");
+    // Implement segment-wise matching handling '**' as zero-or-more segments
+    const p = pattern.segments;
+    const t = target.segments;
+
+    let pi = 0;
+    let ti = 0;
+
+    while (pi < p.length && ti < t.length) {
+      if (p[pi] === "**") {
+        // If '**' is last pattern segment it matches the rest.
+        if (pi === p.length - 1) return true;
+        // Otherwise try to find a match for the next pattern segment
+        const next = p[pi + 1];
+        // advance ti until we find next (or run out)
+        while (ti < t.length && t[ti] !== next) {
+          ti++;
+        }
+        // move past the '**' and continue
+        pi++;
+        continue;
+      }
+
+      if (p[pi] === "*") {
+        pi++;
+        ti++;
+        continue;
+      }
+
+      if (p[pi] !== t[ti]) return false;
+
+      pi++;
+      ti++;
+    }
+
+    // If we've consumed pattern, success only if we've also consumed target
+    if (pi === p.length) return ti === t.length;
+    // Remaining pattern could be a trailing '**'
+    if (pi === p.length - 1 && p[pi] === "**") return true;
+    return false;
   }
 
   if (pattern.globType === "shallow") {
@@ -84,8 +121,11 @@ export function matchesPath(pattern: PathKey, target: PathKey): boolean {
 // Glob segments are stripped: parent of /user/** is /user, not /**
 export function getParentPath(p: PathKey): PathKey | null {
   const nonGlobSegments = p.segments.filter((s) => s !== "*" && s !== "**");
-  if (nonGlobSegments.length <= 1) {
+  if (nonGlobSegments.length === 0) {
     return null;
+  }
+  if (nonGlobSegments.length === 1) {
+    return path(nonGlobSegments[0]);
   }
   return path(...nonGlobSegments.slice(0, -1));
 }

@@ -2,13 +2,16 @@ type EffectFn = () => void;
 
 let pendingEffects = new Set<EffectFn>();
 let flushScheduled = false;
+let flushGeneration = 0;
 let batchDepth = 0;
 
 export function scheduleEffect(fn: EffectFn): void {
   pendingEffects.add(fn);
   if (!flushScheduled) {
     flushScheduled = true;
+    const capturedGen = flushGeneration;
     queueMicrotask(() => {
+      if (capturedGen !== flushGeneration) return;
       flushScheduled = false;
       const effects = [...pendingEffects];
       pendingEffects.clear();
@@ -45,4 +48,5 @@ export function __resetBatchForTesting(): void {
   pendingEffects.clear();
   flushScheduled = false;
   batchDepth = 0;
+  flushGeneration++;
 }

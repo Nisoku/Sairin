@@ -192,20 +192,19 @@ export function parallel<T>(
       abortController = new AbortController();
       running.set(true);
 
-      const promises = fns.map((fn) =>
-        fn(abortController!.signal).catch((e) => e),
-      );
+      const promises = fns.map((fn) => fn(abortController!.signal));
 
-      const outcomes = await Promise.all(promises);
+      const settled = await Promise.allSettled(promises);
 
       const allResults: T[] = [];
       const allErrors: Error[] = [];
 
-      for (const outcome of outcomes) {
-        if (outcome instanceof Error) {
-          allErrors.push(outcome);
+      for (const res of settled) {
+        if (res.status === "fulfilled") {
+          allResults.push(res.value as T);
         } else {
-          allResults.push(outcome);
+          const reason = res.reason;
+          allErrors.push(reason instanceof Error ? reason : new Error(String(reason)));
         }
       }
 

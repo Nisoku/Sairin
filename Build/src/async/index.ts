@@ -49,5 +49,5 @@ export function deferValue<T>(
   timeoutMs?: number,
 ): ReturnType<typeof useDeferredValue> {
   const sig = new Signal(path("async", "deferred", generateUniqueId()), value);
-  return useDeferredValue(sig.peek(), timeoutMs);
+  return useDeferredValue(sig, timeoutMs);
 }

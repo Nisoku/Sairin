@@ -34,7 +34,6 @@ export class Derived<T> {
   }
 
   private recompute(): void {
-    const oldSubscribers = new Set(this._node.subscribers);
     this._node.subscribers.clear();
 
     const prevComputation = getGlobalActiveComputation();
