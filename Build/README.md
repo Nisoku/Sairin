@@ -11,7 +11,7 @@
 [![npm version](https://img.shields.io/npm/v/@nisoku/sairin.svg)](https://www.npmjs.com/package/@nisoku/sairin)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 
-[Documentation](https://nisoku.github.io/Sairin/docs/) | [API Reference](https://nisoku.github.io/Sairin/docs/api/)
+[Documentation](https://nisoku.github.io/Sairin/docs/) | [API Reference](https://nisoku.github.io/Sairin/api/)
 
 </div>
 
@@ -48,13 +48,13 @@ count.set(1);  // Logs: "Count is now: 1"
 
 Most reactive systems use a flat model:
 
-```
+```txt
 signal -> Set<subscriber>
 ```
 
 Sairin uses a filesystem model:
 
-```
+```txt
 /user/name     <- signal
 /user/age      <- signal
 /user          <- namespace
@@ -75,19 +75,19 @@ Sairin is available on [NPM](https://www.npmjs.com/package/@nisoku/sairin)!
 
 | Section | Description |
 | --------- | ------------- |
-| [Quick Start](https://nisoku.github.io/Sairin/docs/getting-started/quickstart) | Your first Sairin app |
-| [Configuration](https://nisoku.github.io/Sairin/docs/getting-started/configuration) | Lock behavior and logging |
-| [Path System](https://nisoku.github.io/Sairin/docs/guide/path-system) | Paths, globs, and aliases |
-| [Signals](https://nisoku.github.io/Sairin/docs/guide/signals) | Creating and using signals |
-| [Effects](https://nisoku.github.io/Sairin/docs/guide/effects) | Running code when signals change |
-| [Derived](https://nisoku.github.io/Sairin/docs/guide/derived) | Computed values that auto-update |
-| [Batching](https://nisoku.github.io/Sairin/docs/guide/batching) | Grouping updates efficiently |
-| [Locks](https://nisoku.github.io/Sairin/docs/guide/locks) | Preventing unauthorized writes |
-| [API Reference](https://nisoku.github.io/Sairin/docs/api/) | Complete API documentation |
+| [Quick Start](https://nisoku.github.io/Sairin/getting-started/quickstart) | Your first Sairin app |
+| [Configuration](https://nisoku.github.io/Sairin/getting-started/configuration) | Lock behavior and logging |
+| [Path System](https://nisoku.github.io/Sairin/guide/path-system) | Paths, globs, and aliases |
+| [Signals](https://nisoku.github.io/Sairin/guide/signals) | Creating and using signals |
+| [Effects](https://nisoku.github.io/Sairin/guide/effects) | Running code when signals change |
+| [Derived](https://nisoku.github.io/Sairin/guide/derived) | Computed values that auto-update |
+| [Batching](https://nisoku.github.io/Sairin/guide/batching) | Grouping updates efficiently |
+| [Locks](https://nisoku.github.io/Sairin/guide/locks) | Preventing unauthorized writes |
+| [API Reference](https://nisoku.github.io/Sairin/api/) | Complete API documentation |
 
 ## Project Structure
 
-```
+```txt
 Sairin/
   Build/            # Source code and build config
     src/            # TypeScript source
