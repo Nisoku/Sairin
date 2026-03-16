@@ -2,7 +2,7 @@
 
 <div align="left">
 
-<img src="assets/images/sairin-logo-light.svg" alt="Sairin" width="200">
+<img src="Build/assets/images/sairin-logo-light.svg" alt="Sairin" width="200">
 
 **Fine-grained reactive UI framework with a virtual filesystem model**
 
