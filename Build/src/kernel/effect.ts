@@ -15,19 +15,18 @@ import { getSairinLogger } from "./config";
 export type CleanupFn = (() => void) | void;
 
 const EFFECT_POOL_SIZE = 10;
-const effectPool: { fn: () => CleanupFn; cleanup: CleanupFn }[] = [];
+const effectPool: CleanupFn[] = [];
 
-function getEffectFromPool(): { fn: () => CleanupFn; cleanup: CleanupFn } {
+function getEffectFromPool(): CleanupFn {
   if (effectPool.length > 0) {
     return effectPool.pop()!;
   }
-  return { fn: () => undefined, cleanup: undefined };
+  return undefined;
 }
 
-function returnEffectToPool(effect: { fn: () => CleanupFn; cleanup: CleanupFn }): void {
+function returnEffectToPool(cleanup: CleanupFn): void {
   if (effectPool.length < EFFECT_POOL_SIZE) {
-    effect.cleanup = undefined;
-    effectPool.push(effect);
+    effectPool.push(cleanup);
   }
 }
 
@@ -47,25 +46,19 @@ function runCleanup(): void {
 type ScheduleFn = (runner: () => void) => void;
 
 function createEffect(fn: () => CleanupFn, schedule: ScheduleFn): () => void {
-  const pooled = getEffectFromPool();
-  let cleanupFn = pooled.cleanup;
+  let cleanupFn = getEffectFromPool();
   let disposed = false;
   const logger = getSairinLogger();
 
   const runner = () => {
     if (disposed) return;
 
-    // Prefer stack-based cleanup first; if cleanupStack contained functions
-    // they represent onCleanup-registered handlers. We run them and ignore
-    // the previous returned cleanupFn to avoid double-cleanup. If no stack
-    // cleanup ran, we invoke the previous cleanupFn (returned by the
-    // previous effect invocation).
-    const hadStackCleanup = cleanupStack.length > 0;
+    // Run any onCleanup-registered handlers first
     runCleanup();
-    if (!hadStackCleanup) {
-      if (typeof cleanupFn === "function") {
-        cleanupFn();
-      }
+
+    // Call the previous cleanup function if it exists
+    if (typeof cleanupFn === "function") {
+      cleanupFn();
     }
 
     const prev = getGlobalActiveComputation();
@@ -91,17 +84,20 @@ function createEffect(fn: () => CleanupFn, schedule: ScheduleFn): () => void {
     if (typeof cleanupFn === "function") {
       cleanupFn();
     }
-    returnEffectToPool({ fn, cleanup: cleanupFn });
+    returnEffectToPool(cleanupFn);
   };
 }
 
 export const effect = (fn: () => CleanupFn) => createEffect(fn, scheduleEffect);
 export const effectSync = (fn: () => CleanupFn) => createEffect(fn, r => r());
-export const effectIdle = (fn: () => CleanupFn) => createEffect(fn,
-  r => typeof requestIdleCallback !== "undefined"
-    ? requestIdleCallback(() => r())
-    : setTimeout(() => r(), 0)
-);
+
+export const effectIdle = (fn: () => CleanupFn) => createEffect(fn, (runner) => {
+  if (typeof requestIdleCallback !== "undefined") {
+    requestIdleCallback(() => runner());
+  } else {
+    setTimeout(() => runner(), 0);
+  }
+});
 
 export function untracked<T>(fn: () => T): T {
   const previousComputation = getGlobalActiveComputation();

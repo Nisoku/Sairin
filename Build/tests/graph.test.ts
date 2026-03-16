@@ -173,10 +173,14 @@ describe('graph', () => {
   });
 
   describe('configureSairin', () => {
-    const originalConfig = getSairinConfig();
+    let originalConfig: ReturnType<typeof getSairinConfig>;
+
+    beforeEach(() => {
+      originalConfig = getSairinConfig();
+    });
 
     afterEach(() => {
-      configureSairin({ lockViolation: "throw", satori: null });
+      configureSairin(originalConfig);
     });
 
     test('should default to throw on lock violations', () => {

@@ -39,8 +39,10 @@ export class Derived<T> {
     const prevComputation = getGlobalActiveComputation();
 
     const tracker = () => {
-      this._node.dirty = true;
-      notifySubscribers(this._node);
+      if (!this._node.dirty) {
+        this._node.dirty = true;
+        notifySubscribers(this._node);
+      }
     };
 
     setGlobalActiveComputation(tracker);

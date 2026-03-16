@@ -41,7 +41,6 @@ export interface EffectNode extends ReactiveNode {
 }
 
 const nodeRegistry = new Map<string, ReactiveNode>();
-const pathCache = new Map<string, PathKey>();
 
 function pathToString(p: PathKey): string {
   return p.raw;
@@ -128,10 +127,12 @@ export function getNodesUnder(prefix: PathKey): ReactiveNode[] {
   const prefixStr = prefix.raw;
 
   for (const node of nodeRegistry.values()) {
-    // Ensure startsWith is a path-prefix check: either exact match or
-    // followed by a '/'. This avoids matching '/foobar' for prefix '/foo'.
-    const startsWithPrefix = node.path.raw === prefixStr || node.path.raw.startsWith(prefixStr + "/");
-    if (startsWithPrefix || matchesPath(prefix, node.path)) {
+    // Handle root "/" specially: all paths start with "/"
+    const isExactMatch = node.path.raw === prefixStr;
+    const hasProperPrefix = prefixStr === "/"
+      ? node.path.raw.startsWith("/")
+      : node.path.raw.startsWith(prefixStr + "/");
+    if (isExactMatch || hasProperPrefix || matchesPath(prefix, node.path)) {
       result.push(node);
     }
   }
@@ -229,6 +230,9 @@ export function trackNode(node: ReactiveNode): void {
 export function __resetRegistryForTesting(): void {
   nodeRegistry.clear();
   lockedPaths.clear();
+  scheduledCleanupNodes.length = 0;
+  cleanupScheduled = false;
+  cleanupIndex = 0;
 }
 
 const lockedPaths = new Map<string, { owner: string; shallow: boolean }>();
@@ -315,6 +319,7 @@ export function assertLock(
 }
 
 let cleanupScheduled = false;
+let cleanupIndex = 0;
 const scheduledCleanupNodes: ReactiveNode[] = [];
 const CLEANUP_CHUNK_SIZE = 10;
 const CLEANUP_WARN_THRESHOLD_MS = 100;
@@ -327,12 +332,11 @@ export function scheduleIncrementalCleanup(
   // Accumulate into the shared scheduled buffer so multiple calls
   // before the microtask runs are coalesced.
   scheduledCleanupNodes.push(...nodes);
-  let index = 0;
   const startTime = Date.now();
   const logger = getSairinLogger();
 
   const cleanupChunk = () => {
-    const chunk = scheduledCleanupNodes.slice(index, index + chunkSize);
+    const chunk = scheduledCleanupNodes.slice(cleanupIndex, cleanupIndex + chunkSize);
     for (const node of chunk) {
       node.subscribers.clear();
       if (node.kind === "derived") {
@@ -340,14 +344,18 @@ export function scheduleIncrementalCleanup(
         (node as any).cached = undefined;
       }
     }
-    index += chunkSize;
+    cleanupIndex += chunkSize;
 
-    if (index < scheduledCleanupNodes.length) {
+    if (cleanupIndex < scheduledCleanupNodes.length) {
       const elapsed = Date.now() - startTime;
       if (elapsed > CLEANUP_WARN_THRESHOLD_MS && logger) {
         logger.warn(`Incremental cleanup falling behind: ${elapsed}ms elapsed`, { tags: ["memory", "gc"] });
       }
       queueMicrotask(cleanupChunk);
+    } else {
+      // Finished, reset for next batch
+      scheduledCleanupNodes.length = 0;
+      cleanupIndex = 0;
     }
   };
 
@@ -356,10 +364,6 @@ export function scheduleIncrementalCleanup(
     queueMicrotask(() => {
       cleanupScheduled = false;
       cleanupChunk();
-      // When finished, clear the scheduled buffer to avoid memory retention
-      if (scheduledCleanupNodes.length <= index) {
-        scheduledCleanupNodes.length = 0;
-      }
     });
   }
 }

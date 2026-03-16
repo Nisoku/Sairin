@@ -11,6 +11,7 @@ import {
   resolveAlias,
   hasNode,
   assertLock,
+  isPathKey,
   type PathKey,
   type SignalNode,
 } from "./graph";

@@ -32,6 +32,16 @@ function keyToId<K>(key: K): string {
   return id;
 }
 
+function removeKeyId<K>(key: K): void {
+  if ((typeof key === "object" || typeof key === "function") && key !== null) {
+    const obj = key as unknown as object;
+    keyIdMap.delete(obj);
+  } else {
+    const prim = String(key) as string | number | symbol;
+    primitiveKeyIdMap.delete(prim);
+  }
+}
+
 export class ReactiveMap<K, V> {
   private id: string;
   private entries = new Map<K, Signal<V>>();
@@ -75,6 +85,7 @@ export class ReactiveMap<K, V> {
   delete(key: K): boolean {
     const result = this.entries.delete(key);
     if (result) {
+      removeKeyId(key);
       this.sizeSignal.set(this.entries.size);
       this.notify();
     }
@@ -82,6 +93,9 @@ export class ReactiveMap<K, V> {
   }
 
   clear(): void {
+    for (const key of this.entries.keys()) {
+      removeKeyId(key);
+    }
     this.entries.clear();
     this.sizeSignal.set(0);
     this.notify();

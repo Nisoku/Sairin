@@ -35,22 +35,25 @@ export function flow<T>(fn: (signal: AbortSignal) => Promise<T>): Flow<T> {
         return;
       }
 
-      abortController = new AbortController();
+      const runController = new AbortController();
+      abortController = runController;
       running.set(true);
       error.set(null);
 
       const perform = async () => {
         try {
-          const data = await fn(abortController!.signal);
-          if (!abortController!.signal.aborted) {
+          const data = await fn(runController.signal);
+          if (!runController.signal.aborted && abortController === runController) {
             result.set(data);
           }
         } catch (e) {
-          if (!abortController!.signal.aborted) {
+          if (!runController.signal.aborted && abortController === runController) {
             error.set(e instanceof Error ? e : new Error(String(e)));
           }
         } finally {
-          running.set(false);
+          if (abortController === runController) {
+            running.set(false);
+          }
         }
       };
 
@@ -91,21 +94,22 @@ export function pipeline<T, R>(
     result,
     error,
     start: async (input: T) => {
-      abortController = new AbortController();
+      const runController = new AbortController();
+      abortController = runController;
       running.set(true);
       error.set(null);
 
       try {
-        const data = await fn(input, abortController.signal);
-        if (!abortController.signal.aborted) {
+        const data = await fn(input, runController.signal);
+        if (!runController.signal.aborted && abortController === runController) {
           result.set(data);
         }
       } catch (e) {
-        if (!abortController.signal.aborted) {
+        if (!runController.signal.aborted && abortController === runController) {
           error.set(e instanceof Error ? e : new Error(String(e)));
         }
       } finally {
-        if (!abortController.signal.aborted) {
+        if (abortController === runController) {
           running.set(false);
         }
       }
@@ -139,26 +143,29 @@ export function sequence<T>(
     results,
     errors,
     start: async () => {
-      abortController = new AbortController();
+      const runController = new AbortController();
+      abortController = runController;
       running.set(true);
 
       const allResults: T[] = [];
       const allErrors: Error[] = [];
 
       for (const fn of fns) {
-        if (abortController!.signal.aborted) break;
+        if (runController.signal.aborted) break;
 
         try {
-          const result = await fn(abortController!.signal);
+          const result = await fn(runController.signal);
           allResults.push(result);
         } catch (e) {
           allErrors.push(e instanceof Error ? e : new Error(String(e)));
         }
       }
 
-      results.set(allResults);
-      errors.set(allErrors);
-      running.set(false);
+      if (abortController === runController) {
+        results.set(allResults);
+        errors.set(allErrors);
+        running.set(false);
+      }
     },
     cancel: () => {
       abortController?.abort();
@@ -189,10 +196,11 @@ export function parallel<T>(
     results,
     errors,
     start: async () => {
-      abortController = new AbortController();
+      const runController = new AbortController();
+      abortController = runController;
       running.set(true);
 
-      const promises = fns.map((fn) => fn(abortController!.signal));
+      const promises = fns.map((fn) => fn(runController.signal));
 
       const settled = await Promise.allSettled(promises);
 
@@ -208,9 +216,11 @@ export function parallel<T>(
         }
       }
 
-      results.set(allResults);
-      errors.set(allErrors);
-      running.set(false);
+      if (abortController === runController) {
+        results.set(allResults);
+        errors.set(allErrors);
+        running.set(false);
+      }
     },
     cancel: () => {
       abortController?.abort();
@@ -244,12 +254,13 @@ export function race<T>(
     error,
     winner,
     start: async () => {
-      abortController = new AbortController();
+      const runController = new AbortController();
+      abortController = runController;
       running.set(true);
       error.set(null);
 
       const promises = fns.map((fn, index) =>
-        fn(abortController!.signal)
+        fn(runController.signal)
           .then((value) => ({ index, value }))
           .catch((e) => ({
             index,
@@ -258,6 +269,8 @@ export function race<T>(
       );
 
       const outcome = await Promise.race(promises);
+
+      if (abortController !== runController) return;
 
       if ("error" in outcome) {
         error.set(outcome.error);

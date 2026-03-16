@@ -121,11 +121,8 @@ export function matchesPath(pattern: PathKey, target: PathKey): boolean {
 // Glob segments are stripped: parent of /user/** is /user, not /**
 export function getParentPath(p: PathKey): PathKey | null {
   const nonGlobSegments = p.segments.filter((s) => s !== "*" && s !== "**");
-  if (nonGlobSegments.length === 0) {
+  if (nonGlobSegments.length <= 1) {
     return null;
-  }
-  if (nonGlobSegments.length === 1) {
-    return path(nonGlobSegments[0]);
   }
   return path(...nonGlobSegments.slice(0, -1));
 }

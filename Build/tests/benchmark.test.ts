@@ -106,8 +106,9 @@ describe('Performance Benchmarks', () => {
       }
       const end = performance.now();
       
-      expect(cleanup).toHaveBeenCalledTimes(iterations);
-      const timePerOp = ((end - start) / iterations);
+      // Each iteration's runner calls the previous cleanup, then dispose calls it again
+      expect(cleanup).toHaveBeenCalledTimes(2 * iterations - 1);
+      const timePerOp = (end - start) / iterations;
       expect(timePerOp).toBeLessThan(3);
     });
   });

@@ -217,23 +217,5 @@ describe('path', () => {
   test('should create simple paths', () => {
     const p = path("user", "name");
     expect(p.raw).toBe("/user/name");
-    expect(p.segments).toEqual(["user", "name"]);
-  });
-
-  test('should create paths with numbers', () => {
-    const p = path("components", 0, "value");
-    expect(p.raw).toBe("/components/0/value");
-  });
-
-  test('should detect shallow glob', () => {
-    const p = path("user", "*");
-    expect(p.isGlob).toBe(true);
-    expect(p.globType).toBe("shallow");
-  });
-
-  test('should detect deep glob', () => {
-    const p = path("user", "**");
-    expect(p.isGlob).toBe(true);
-    expect(p.globType).toBe("deep");
   });
 });

@@ -7,7 +7,8 @@ import {
   notifySignalRead,
   notifySignalWritten,
   captureGraph,
-  clearGraph
+  clearGraph,
+  registerSignal
 } from '../src/debug';
 import { Signal, path } from '../src/kernel';
 
@@ -120,6 +121,9 @@ describe('Debug', () => {
     
     const sig1 = new Signal(path("debug", "graph1"), 1);
     const sig2 = new Signal(path("debug", "graph2"), 2);
+    
+    registerSignal(sig1);
+    registerSignal(sig2);
     
     const graph = captureGraph();
     

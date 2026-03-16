@@ -58,7 +58,9 @@ export function reactive<T extends object>(
       if (target[prop] && target[prop] instanceof Signal) {
         target[prop].set(newValue);
       } else {
-        target[prop] = newValue as any;
+        // Convert to Signal to maintain reactive invariant
+        const storePath = target.$.path.raw;
+        target[prop] = signal(path(storePath, String(prop)), newValue);
       }
       return true;
     },
