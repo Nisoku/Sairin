@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="200 100 280 320" width="64" height="64">
+  <g transform="scale(-1, 1) translate(-680, 0)">
+  <defs>
+    <linearGradient id="spiralGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1D9E75" stop-opacity="0.9" />
+      <stop offset="40%" stop-color="#5DCAA5" stop-opacity="0.8" />
+      <stop offset="75%" stop-color="#7F77DD" stop-opacity="0.85" />
+      <stop offset="100%" stop-color="#534AB7" stop-opacity="1" />
+    </linearGradient>
+  </defs>
+
+  <path d="M 340 130 C 400 130, 440 155, 440 195 C 440 235, 400 258, 340 258 C 280 258, 240 282, 240 320 C 240 358, 280 385, 340 385" fill="none" stroke="url(#spiralGrad)" stroke-width="4.5" stroke-linecap="round" opacity="0.35" />
+  <path d="M 340 148 C 392 148, 424 168, 424 200 C 424 232, 392 252, 340 252 C 288 252, 256 272, 256 304 C 256 336, 288 356, 340 356" fill="none" stroke="url(#spiralGrad)" stroke-width="3.5" stroke-linecap="round" opacity="0.55" />
+  <path d="M 340 168 C 380 168, 406 183, 406 205 C 406 227, 380 243, 340 243 C 300 243, 274 259, 274 281 C 274 303, 300 319, 340 319" fill="none" stroke="url(#spiralGrad)" stroke-width="2.5" stroke-linecap="round" opacity="0.75" />
+  <path d="M 340 186 C 368 186, 388 197, 388 212 C 388 227, 368 238, 340 238 C 312 238, 292 249, 292 264 C 292 279, 312 290, 340 290" fill="none" stroke="url(#spiralGrad)" stroke-width="1.8" stroke-linecap="round" opacity="0.9" />
+  <circle cx="340" cy="252" r="3.5" fill="#7F77DD" opacity="0.9" />
+  </g>
+</svg>
