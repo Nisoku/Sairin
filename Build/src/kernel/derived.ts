@@ -8,8 +8,10 @@ import {
   notifySubscribers,
   getOrCreateNode,
   getNode,
+  getAllNodes,
   type PathKey,
   type DerivedNode,
+  type ReactiveNode,
 } from "./graph";
 import { generateUniqueId } from "./dependency";
 
@@ -21,6 +23,8 @@ export class Derived<T> {
   readonly id: number;
   readonly path: PathKey;
   private _node: DerivedNode<T>;
+  private _tracker: (() => void) | null = null;
+  private _sources: Set<ReactiveNode> = new Set();
 
   constructor(path: PathKey, fn: () => T, options: DerivedOptions = {}) {
     this.id = parseInt(generateUniqueId(), 36);
@@ -36,7 +40,13 @@ export class Derived<T> {
   private recompute(): void {
     this._node.subscribers.clear();
 
-    const prevComputation = getGlobalActiveComputation();
+    // Unsubscribe from previous sources using the old tracker
+    if (this._tracker) {
+      for (const source of this._sources) {
+        source.subscribers.delete(this._tracker);
+      }
+    }
+    this._sources.clear();
 
     const tracker = () => {
       if (!this._node.dirty) {
@@ -45,12 +55,23 @@ export class Derived<T> {
       }
     };
 
+    this._tracker = tracker;
+
+    const prevComputation = getGlobalActiveComputation();
+
     setGlobalActiveComputation(tracker);
 
     try {
       this._node.cached = this._node.compute();
       this._node.dirty = false;
     } finally {
+      // Collect the sources that were tracked
+      const nodes = getAllNodes();
+      for (const node of nodes) {
+        if (node.subscribers.has(tracker)) {
+          this._sources.add(node);
+        }
+      }
       setGlobalActiveComputation(prevComputation);
     }
   }

@@ -81,10 +81,11 @@ export function signal<T>(pathOrInitial: PathKey | T, initial?: T): Signal<T> {
     const resolved = resolveAlias(path);
     if (resolved) {
       path = resolved;
-      const existingNode = getNode(path);
-      if (existingNode && existingNode.kind === "signal") {
-        return new Signal(path, undefined as unknown as T, false);
-      }
+    }
+    // Check for existing signal node
+    const existingNode = getNode(path);
+    if (existingNode && existingNode.kind === "signal") {
+      return new Signal(path, undefined as unknown as T, false);
     }
     return new Signal(path, initial as T, true);
   }

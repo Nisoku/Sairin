@@ -1,5 +1,5 @@
 import { Signal, signal } from "../kernel/signal";
-import { effect } from "../kernel/effect";
+import { effect, effectSync, onCleanup } from "../kernel/effect";
 import { path } from "../kernel/path";
 import { generateUniqueId } from "../kernel/dependency";
 
@@ -97,7 +97,13 @@ export function deferred<T>(
 }
 
 export function useDeferred<T>(value: Signal<T>, timeoutMs = 0): Signal<T> {
-  return deferred(value, { timeoutMs }).signal;
+  let deferredSignal: Signal<T>;
+  effectSync(() => {
+    const result = deferred(value, { timeoutMs });
+    deferredSignal = result.signal;
+    onCleanup(result.dispose);
+  });
+  return deferredSignal!;
 }
 
 export function useDeferredValue<T>(
@@ -105,11 +111,23 @@ export function useDeferredValue<T>(
   timeoutMs = 0,
 ): Signal<T> {
   if (value instanceof Signal) {
-    return deferred(value, { timeoutMs }).signal;
+    let deferredSignal: Signal<T>;
+    effectSync(() => {
+      const result = deferred(value, { timeoutMs });
+      deferredSignal = result.signal;
+      onCleanup(result.dispose);
+    });
+    return deferredSignal!;
   }
   const sig = signal(
     path("transition", "deferredValue", generateUniqueId()),
     value,
   );
-  return deferred(sig, { timeoutMs }).signal;
+  let deferredSignal: Signal<T>;
+  effectSync(() => {
+    const result = deferred(sig, { timeoutMs });
+    deferredSignal = result.signal;
+    onCleanup(result.dispose);
+  });
+  return deferredSignal!;
 }

@@ -28,6 +28,12 @@ export function flow<T>(fn: (signal: AbortSignal) => Promise<T>): Flow<T> {
     result,
     error,
     start: async () => {
+      /**
+       * Concurrent behavior: when running.peek() is true, start will await
+       * currentPromise (if set) and return without re-executing the operation.
+       * Callers should not expect re-triggering and can treat it as an
+       * idempotent no-op during active runs.
+       */
       if (running.peek()) {
         if (currentPromise) {
           await currentPromise;
@@ -150,6 +156,11 @@ export interface Sequence<T> {
 export function sequence<T>(
   ...fns: ((signal: AbortSignal) => Promise<T>)[]
 ): Sequence<T> {
+  /**
+   * Executes functions in sequence, collecting all results and errors.
+   * Does NOT fail fast, continues executing all functions even if some fail.
+   * Uses abortController.signal to allow cancellation.
+   */
   const id = nextFlowId();
   const running = signal(path("sequence", id, "running"), false);
   const results = signal(path("sequence", id, "results"), [] as T[]);
@@ -259,6 +270,11 @@ export interface Race<T> {
 export function race<T>(
   ...fns: ((signal: AbortSignal) => Promise<T>)[]
 ): Race<T> {
+  /**
+   * Executes functions in parallel and returns the first to settle.
+   * If the first to settle is a rejection, winner remains at -1.
+   * Once a winner resolves, other pending promises are aborted.
+   */
   const id = nextFlowId();
   const running = signal(path("race", id, "running"), false);
   const result = signal<T | null>(path("race", id, "result"), null);
@@ -297,6 +313,8 @@ export function race<T>(
         winner.set(outcome.index);
       }
 
+      // Abort remaining competitors after race resolves
+      abortController?.abort();
       running.set(false);
     },
     cancel: () => {

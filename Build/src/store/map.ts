@@ -22,8 +22,8 @@ function keyToId<K>(key: K): string {
     }
     return id;
   }
-  // primitives
-  const prim = String(key) as string | number | symbol;
+  // primitives, use original value as key to avoid collisions
+  const prim = key as string | number | symbol;
   let id = primitiveKeyIdMap.get(prim);
   if (!id) {
     id = (++nextKeyId).toString(36);
@@ -37,7 +37,7 @@ function removeKeyId<K>(key: K): void {
     const obj = key as unknown as object;
     keyIdMap.delete(obj);
   } else {
-    const prim = String(key) as string | number | symbol;
+    const prim = key as string | number | symbol;
     primitiveKeyIdMap.delete(prim);
   }
 }
@@ -65,6 +65,7 @@ export class ReactiveMap<K, V> {
   }
 
   get(key: K): V | undefined {
+    this.sizeSignal.get(); // track membership changes
     return this.entries.get(key)?.get();
   }
 
@@ -81,6 +82,7 @@ export class ReactiveMap<K, V> {
   }
 
   has(key: K): boolean {
+    this.sizeSignal.get(); // track membership changes
     return this.entries.has(key);
   }
 
@@ -112,6 +114,7 @@ export class ReactiveMap<K, V> {
   }
 
   values(): IterableIterator<V> {
+    this.sizeSignal.get(); // track membership changes
     function* gen(this: ReactiveMap<K, V>) {
       for (const sig of this.entries.values()) {
         yield sig.get();
@@ -121,6 +124,7 @@ export class ReactiveMap<K, V> {
   }
 
   entriesIterable(): IterableIterator<[K, V]> {
+    this.sizeSignal.get(); // track membership changes
     function* gen(this: ReactiveMap<K, V>) {
       for (const [key, sig] of this.entries.entries()) {
         yield [key, sig.get()] as [K, V];
@@ -130,12 +134,14 @@ export class ReactiveMap<K, V> {
   }
 
   forEach(fn: (value: V, key: K, map: ReactiveMap<K, V>) => void): void {
+    this.sizeSignal.get(); // track membership changes
     for (const [key, sig] of this.entries.entries()) {
       fn(sig.get(), key, this);
     }
   }
 
   toArray(): [K, V][] {
+    this.sizeSignal.get(); // track membership changes
     const result: [K, V][] = [];
     for (const [key, sig] of this.entries.entries()) {
       result.push([key, sig.get()]);

@@ -46,7 +46,7 @@ export function resource<T>(
         }
       })
       .finally(() => {
-        if (!currentController.signal.aborted && abortController === currentController) {
+        if (abortController === currentController) {
           loading.set(false);
         }
       });
@@ -99,7 +99,7 @@ export function resourceWithSignal<T>(
         }
       })
       .finally(() => {
-        if (!currentController.signal.aborted && abortController === currentController && currentLoader === loader) {
+        if (abortController === currentController && currentLoader === loader) {
           loading.set(false);
         }
       });

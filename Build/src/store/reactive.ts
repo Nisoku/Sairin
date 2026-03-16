@@ -62,7 +62,7 @@ export function reactive<T extends object>(
         },
       });
     } else if (isObject(value)) {
-      result[key] = reactive(value, `${storePath}/${String(key)}`);
+      result[key] = reactive(value, path(storePath, String(key)).raw);
     } else {
       result[key] = signal(path(storePath, String(key)), value);
     }

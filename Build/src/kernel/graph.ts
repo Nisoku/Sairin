@@ -229,12 +229,15 @@ export function trackNode(node: ReactiveNode): void {
     
     nodes.add(node);
     subscribe(node, computation);
+    // Remove immediately after subscription to allow re-reading the same node
+    nodes.delete(node);
   }
 }
 
 export function __resetRegistryForTesting(): void {
   nodeRegistry.clear();
   lockedPaths.clear();
+  aliases.clear();
   scheduledCleanupNodes.length = 0;
   cleanupScheduled = false;
   cleanupIndex = 0;

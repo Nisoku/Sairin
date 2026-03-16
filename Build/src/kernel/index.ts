@@ -1,3 +1,9 @@
+import { Signal } from "./signal";
+import { Derived } from "./derived";
+import { effect, effectSync, onCleanup, untracked } from "./effect";
+import { batch } from "./batch";
+import { type PathKey, path } from "./path";
+
 export { Signal, signal, isSignal } from "./signal";
 export { Derived, derived, type DerivedOptions } from "./derived";
 export {
@@ -25,7 +31,7 @@ export {
   joinPath,
   type PathKey,
 } from "./path";
-export { path as createPath }; // Re-export path factory with clearer name
+export { path as createPath };
 export {
   getNode,
   hasNode,
@@ -59,12 +65,6 @@ export {
   type SairinConfig,
   type LockViolationBehavior,
 } from "./config";
-
-import { Signal } from "./signal";
-import { Derived } from "./derived";
-import { effect, effectSync, onCleanup, untracked } from "./effect";
-import { batch } from "./batch";
-import { type PathKey, path } from "./path";
 
 export function createSignal<T>(path: PathKey, value: T): Signal<T> {
   return new Signal(path, value);

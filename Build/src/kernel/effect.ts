@@ -7,31 +7,38 @@ import { getSairinLogger } from "./config";
 
 export type CleanupFn = (() => void) | void;
 
-let cleanupStack: CleanupFn[] = [];
+type ScheduleFn = (runner: () => void) => void;
 
-export function onCleanup(fn: () => void): void {
-  cleanupStack.push(fn);
+interface EffectContext {
+  cleanups: CleanupFn[];
 }
 
-function runCleanup(): void {
-  while (cleanupStack.length > 0) {
-    const fn = cleanupStack.pop();
-    if (fn) fn();
+let currentEffect: EffectContext | null = null;
+
+export function onCleanup(fn: () => void): void {
+  if (currentEffect) {
+    currentEffect.cleanups.push(fn);
   }
 }
 
-type ScheduleFn = (runner: () => void) => void;
+function runCleanup(cleanups: CleanupFn[]): void {
+  while (cleanups.length > 0) {
+    const fn = cleanups.pop();
+    if (fn) fn();
+  }
+}
 
 function createEffect(fn: () => CleanupFn, schedule: ScheduleFn): () => void {
   let cleanupFn: CleanupFn;
   let disposed = false;
   const logger = getSairinLogger();
+  const effectContext: EffectContext = { cleanups: [] };
 
   const runner = () => {
     if (disposed) return;
 
     // Run any onCleanup-registered handlers first
-    runCleanup();
+    runCleanup(effectContext.cleanups);
 
     // Call the previous cleanup function if it exists
     if (typeof cleanupFn === "function") {
@@ -39,6 +46,10 @@ function createEffect(fn: () => CleanupFn, schedule: ScheduleFn): () => void {
     }
 
     const prev = getGlobalActiveComputation();
+    const prevEffect = currentEffect;
+    currentEffect = effectContext;
+    effectContext.cleanups = [];
+
     setGlobalActiveComputation(runner);
 
     try {
@@ -50,6 +61,7 @@ function createEffect(fn: () => CleanupFn, schedule: ScheduleFn): () => void {
       }
     } finally {
       setGlobalActiveComputation(prev);
+      currentEffect = prevEffect;
     }
   };
 
@@ -57,7 +69,7 @@ function createEffect(fn: () => CleanupFn, schedule: ScheduleFn): () => void {
 
   return () => {
     disposed = true;
-    runCleanup();
+    runCleanup(effectContext.cleanups);
     if (typeof cleanupFn === "function") {
       cleanupFn();
     }
