@@ -1,5 +1,7 @@
-import { Signal, signal } from '../kernel/signal';
-import { effect } from '../kernel/effect';
+import { Signal, signal } from "../kernel/signal";
+import { effect, effectSync, onCleanup } from "../kernel/effect";
+import { path } from "../kernel/path";
+import { generateUniqueId } from "../kernel/dependency";
 
 let isTransition = false;
 const transitionStack: boolean[] = [];
@@ -7,7 +9,7 @@ const transitionStack: boolean[] = [];
 export function startTransition(fn: () => void): void {
   transitionStack.push(isTransition);
   isTransition = true;
-  
+
   try {
     fn();
   } finally {
@@ -25,11 +27,14 @@ export interface TransitionResult {
 }
 
 export function useTransition(timeout = 0): TransitionResult {
-  const pending = signal(false);
+  const pending = signal(
+    path("transition", "pending", generateUniqueId()),
+    false,
+  );
 
   const start = (fn: () => void) => {
     pending.set(true);
-    
+
     const performTransition = () => {
       try {
         startTransition(fn);
@@ -56,13 +61,19 @@ export interface DeferredValueOptions<T> {
   equals?: (a: T, b: T) => boolean;
 }
 
-export function deferred<T>(value: Signal<T>, options: DeferredValueOptions<T> = {}): Signal<T> {
+export function deferred<T>(
+  value: Signal<T>,
+  options: DeferredValueOptions<T> = {},
+): { signal: Signal<T>; dispose: () => void } {
   const { timeoutMs = 0, equals = Object.is } = options;
-  const deferredValue = signal(value.peek());
+  const deferredValue = signal(
+    path("transition", "deferred", generateUniqueId()),
+    value.peek(),
+  );
 
-  effect(() => {
+  const dispose = effect(() => {
     const newValue = value.get();
-    
+
     if (equals(deferredValue.peek(), newValue)) {
       return;
     }
@@ -82,14 +93,41 @@ export function deferred<T>(value: Signal<T>, options: DeferredValueOptions<T> =
     }
   });
 
-  return deferredValue;
+  return { signal: deferredValue, dispose };
 }
 
 export function useDeferred<T>(value: Signal<T>, timeoutMs = 0): Signal<T> {
-  return deferred(value, { timeoutMs });
+  let deferredSignal: Signal<T>;
+  effectSync(() => {
+    const result = deferred(value, { timeoutMs });
+    deferredSignal = result.signal;
+    onCleanup(result.dispose);
+  });
+  return deferredSignal!;
 }
 
-export function useDeferredValue<T>(value: T, timeoutMs = 0): Signal<T> {
-  const sig = signal(value);
-  return deferred(sig, { timeoutMs });
+export function useDeferredValue<T>(
+  value: T | Signal<T>,
+  timeoutMs = 0,
+): Signal<T> {
+  if (value instanceof Signal) {
+    let deferredSignal: Signal<T>;
+    effectSync(() => {
+      const result = deferred(value, { timeoutMs });
+      deferredSignal = result.signal;
+      onCleanup(result.dispose);
+    });
+    return deferredSignal!;
+  }
+  const sig = signal(
+    path("transition", "deferredValue", generateUniqueId()),
+    value,
+  );
+  let deferredSignal: Signal<T>;
+  effectSync(() => {
+    const result = deferred(sig, { timeoutMs });
+    deferredSignal = result.signal;
+    onCleanup(result.dispose);
+  });
+  return deferredSignal!;
 }

@@ -1,5 +1,5 @@
-import { Signal } from '../kernel/signal';
-import { Derived } from '../kernel/derived';
+import { Signal } from "../kernel/signal";
+import { Derived } from "../kernel/derived";
 
 export interface DebugHooks {
   onSignalCreated?: (signal: Signal<any>, name?: string) => void;
@@ -41,7 +41,11 @@ export function notifySignalRead(signal: Signal<any>): void {
   debugHooks.onSignalRead?.(signal);
 }
 
-export function notifySignalWritten(signal: Signal<any>, oldValue: any, newValue: any): void {
+export function notifySignalWritten(
+  signal: Signal<any>,
+  oldValue: any,
+  newValue: any,
+): void {
   debugHooks.onSignalWritten?.(signal, oldValue, newValue);
 }
 

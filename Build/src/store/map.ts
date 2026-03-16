@@ -1,63 +1,113 @@
-import { Signal, signal, Subscriber, trackDependency } from '../kernel';
+import { Signal, signal, Subscriber, trackDependency } from "../kernel";
+import { path } from "../kernel/path";
+
+let mapId = 0;
+
+function nextMapId(): string {
+  return (++mapId).toString(36);
+}
 
 export class ReactiveMap<K, V> {
+  private id: string;
   private entries = new Map<K, Signal<V>>();
+  private keyIds = new WeakMap<object, string>();
+  private primKeyIds = new Map<string | number | symbol, string>();
+  private nextKeyId = 0;
   private sizeSignal: Signal<number>;
   private subscribers = new Set<Subscriber>();
 
   constructor(initial: [K, V][] = []) {
-    this.sizeSignal = signal(0);
+    this.id = nextMapId();
+    this.sizeSignal = signal(path("map", this.id, "size"), 0);
     for (const [key, value] of initial) {
-      this.entries.set(key, signal(value));
+      const kid = this.getKeyId(key);
+      this.entries.set(key, signal(path("map", this.id, kid), value));
     }
     this.sizeSignal.set(this.entries.size);
   }
 
+  private getKeyId(key: K): string {
+    if (
+      (typeof key === "object" || typeof key === "function") &&
+      key !== null
+    ) {
+      let id = this.keyIds.get(key as object);
+      if (!id) {
+        id = (this.nextKeyId++).toString(36);
+        this.keyIds.set(key as object, id);
+      }
+      return id;
+    }
+    const prim = key as string | number | symbol;
+    let id = this.primKeyIds.get(prim);
+    if (!id) {
+      id = (this.nextKeyId++).toString(36);
+      this.primKeyIds.set(prim, id);
+    }
+    return id;
+  }
+
+  private removeKeyId(key: K): void {
+    if (
+      (typeof key === "object" || typeof key === "function") &&
+      key !== null
+    ) {
+      this.keyIds.delete(key as object);
+    } else {
+      const prim = key as string | number | symbol;
+      this.primKeyIds.delete(prim);
+    }
+  }
+
   private notify(): void {
-    this.subscribers.forEach(fn => fn());
+    for (const fn of this.subscribers) {
+      fn();
+    }
   }
 
   get(key: K): V | undefined {
-    const sig = this.entries.get(key);
-    if (sig) {
-      trackDependency(sig);
-      return sig.peek();
-    }
-    return undefined;
+    this.sizeSignal.get();
+    return this.entries.get(key)?.get();
   }
 
   set(key: K, value: V): void {
-    if (this.entries.has(key)) {
-      this.entries.get(key)!.set(value);
+    const existing = this.entries.get(key);
+    if (existing) {
+      existing.set(value);
     } else {
-      this.entries.set(key, signal(value));
+      const kid = this.getKeyId(key);
+      this.entries.set(key, signal(path("map", this.id, kid), value));
       this.sizeSignal.set(this.entries.size);
     }
     this.notify();
   }
 
+  has(key: K): boolean {
+    this.sizeSignal.get();
+    return this.entries.has(key);
+  }
+
   delete(key: K): boolean {
     const result = this.entries.delete(key);
     if (result) {
+      this.removeKeyId(key);
       this.sizeSignal.set(this.entries.size);
       this.notify();
     }
     return result;
   }
 
-  has(key: K): boolean {
-    return this.entries.has(key);
-  }
-
-  get size(): number {
-    trackDependency(this.sizeSignal);
-    return this.sizeSignal.peek();
-  }
-
   clear(): void {
+    for (const key of this.entries.keys()) {
+      this.removeKeyId(key);
+    }
     this.entries.clear();
     this.sizeSignal.set(0);
     this.notify();
+  }
+
+  get size(): number {
+    return this.sizeSignal.get();
   }
 
   keys(): IterableIterator<K> {
@@ -65,62 +115,57 @@ export class ReactiveMap<K, V> {
   }
 
   values(): IterableIterator<V> {
-    const self = this;
-    return {
-      [Symbol.iterator]() {
-        return this;
-      },
-      next(): IteratorResult<V> {
-        const result = self.entries.values().next();
-        if (result.done) {
-          return { done: true, value: undefined };
-        }
-        trackDependency(result.value);
-        return { done: false, value: result.value.peek() };
-      },
-    };
+    this.sizeSignal.get();
+    function* gen(this: ReactiveMap<K, V>) {
+      for (const sig of this.entries.values()) {
+        yield sig.get();
+      }
+    }
+    return gen.call(this);
   }
 
-  entries_(): IterableIterator<[K, V]> {
-    const self = this;
-    return {
-      [Symbol.iterator]() {
-        return this;
-      },
-      next(): IteratorResult<[K, V]> {
-        const result = self.entries.entries().next();
-        if (result.done) {
-          return { done: true, value: undefined };
-        }
-        const [key, valueSig] = result.value;
-        trackDependency(valueSig);
-        return { done: false, value: [key, valueSig.peek()] };
-      },
-    };
+  entriesIterable(): IterableIterator<[K, V]> {
+    this.sizeSignal.get();
+    function* gen(this: ReactiveMap<K, V>) {
+      for (const [key, sig] of this.entries.entries()) {
+        yield [key, sig.get()] as [K, V];
+      }
+    }
+    return gen.call(this);
   }
 
   forEach(fn: (value: V, key: K, map: ReactiveMap<K, V>) => void): void {
-    this.entries.forEach((valueSig, key) => {
-      trackDependency(valueSig);
-      fn(valueSig.peek(), key, this);
-    });
+    this.sizeSignal.get();
+    for (const [key, sig] of this.entries.entries()) {
+      fn(sig.get(), key, this);
+    }
+  }
+
+  toArray(): [K, V][] {
+    this.sizeSignal.get();
+    const result: [K, V][] = [];
+    for (const [key, sig] of this.entries.entries()) {
+      result.push([key, sig.get()]);
+    }
+    return result;
   }
 
   subscribe(fn: Subscriber): () => void {
     this.subscribers.add(fn);
-    return () => this.subscribers.delete(fn);
+    return () => {
+      this.subscribers.delete(fn);
+    };
   }
 
-  toArray(): [K, V][] {
-    const result: [K, V][] = [];
-    this.entries.forEach((valueSig, key) => {
-      trackDependency(valueSig);
-      result.push([key, valueSig.peek()]);
-    });
-    return result;
+  unsubscribe(fn: Subscriber): void {
+    this.subscribers.delete(fn);
+  }
+
+  [Symbol.iterator](): IterableIterator<[K, V]> {
+    return this.entriesIterable();
   }
 }
 
-export function reactiveMap<K, V>(initial: [K, V][] = []): ReactiveMap<K, V> {
-  return new ReactiveMap(initial);
+export function reactiveMap<K, V>(entries?: [K, V][]): ReactiveMap<K, V> {
+  return new ReactiveMap(entries);
 }

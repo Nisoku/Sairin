@@ -1,55 +1,97 @@
-import { Subscriber, trackDependency, generateId, getGlobalActiveComputation } from './dependency';
+import {
+  Subscriber,
+  trackNode,
+  subscribe,
+  unsubscribe,
+  notifySubscribers,
+  getOrCreateNode,
+  getNode,
+  isLocked,
+  checkLock,
+  resolveAlias,
+  hasNode,
+  assertLock,
+  isPathKey,
+  type PathKey,
+  type SignalNode,
+} from "./graph";
+import { generateUniqueId } from "./dependency";
+import { getSairinConfig, getSairinLogger } from "./config";
 
 export class Signal<T> {
   readonly id: number;
-  private value: T;
-  private subscribers = new Set<Subscriber>();
+  readonly path: PathKey;
+  private _node: SignalNode<T>;
 
-  constructor(initial: T) {
-    this.id = generateId();
-    this.value = initial;
+  constructor(path: PathKey, initial: T, forceSet = false) {
+    this.id = parseInt(generateUniqueId(), 36);
+    this.path = path;
+    this._node = getOrCreateNode(path, "signal") as SignalNode<T>;
+    if (forceSet || initial !== undefined) {
+      this._node.value = initial;
+    }
   }
 
   get(): T {
-    trackDependency(this);
-    return this.value;
+    trackNode(this._node);
+    return this._node.value;
   }
 
-  set(next: T): void {
-    if (Object.is(this.value, next)) return;
-    const oldValue = this.value;
-    this.value = next;
-    this.notifySubscribers(oldValue, next);
+  set(next: T, options?: { owner?: string }): void {
+    const pathIsLocked = isLocked(this.path);
+    if (pathIsLocked) {
+      // Use centralized assertLock which will log/throw according to config
+      const attempted = options?.owner ?? "";
+      if (!assertLock(this.path, attempted, attempted)) return;
+    }
+
+    if (Object.is(this._node.value, next)) return;
+    this._node.value = next;
+    notifySubscribers(this._node);
   }
 
-  update(fn: (value: T) => T): void {
-    this.set(fn(this.value));
-  }
-
-  private notifySubscribers(oldValue: T, newValue: T): void {
-    this.subscribers.forEach((fn) => fn());
+  update(fn: (value: T) => T, options?: { owner?: string }): void {
+    this.set(fn(this._node.value), options);
   }
 
   subscribe(fn: Subscriber): () => void {
-    this.subscribers.add(fn);
-    return () => {
-      this.subscribers.delete(fn);
-    };
+    return subscribe(this._node, fn);
   }
 
   unsubscribe(fn: Subscriber): void {
-    this.subscribers.delete(fn);
+    unsubscribe(this._node, fn);
   }
 
   getSubscriberCount(): number {
-    return this.subscribers.size;
+    return this._node.subscribers.size;
   }
 
   peek(): T {
-    return this.value;
+    return this._node.value;
+  }
+
+  get version(): number {
+    return this._node.version;
   }
 }
 
-export function signal<T>(initial: T): Signal<T> {
-  return new Signal(initial);
+export function signal<T>(pathOrInitial: PathKey | T, initial?: T): Signal<T> {
+  if (isPathKey(pathOrInitial)) {
+    let path = pathOrInitial as PathKey;
+    const resolved = resolveAlias(path);
+    if (resolved) {
+      path = resolved;
+    }
+    // Check for existing signal node and return it if found
+    const existingNode = getNode(path);
+    if (existingNode && existingNode.kind === "signal") {
+      return new Signal(path, (existingNode as any).value, false);
+    }
+    return new Signal(path, initial as T, true);
+  }
+  throw new Error("signal() requires a path as first argument in Sairin");
+}
+
+export function isSignal<T>(value: unknown): value is Signal<T> {
+  return value instanceof Signal;
 }

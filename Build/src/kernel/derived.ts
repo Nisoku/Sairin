@@ -1,5 +1,19 @@
-import { Subscriber, trackDependency, generateId, getGlobalActiveComputation, setGlobalActiveComputation } from './dependency';
-import { Signal } from './signal';
+import {
+  Subscriber,
+  getGlobalActiveComputation,
+  setGlobalActiveComputation,
+  trackNode,
+  subscribe,
+  unsubscribe,
+  notifySubscribers,
+  getOrCreateNode,
+  getNode,
+  getAllNodes,
+  type PathKey,
+  type DerivedNode,
+  type ReactiveNode,
+} from "./graph";
+import { generateUniqueId } from "./dependency";
 
 export interface DerivedOptions {
   eager?: boolean;
@@ -7,15 +21,16 @@ export interface DerivedOptions {
 
 export class Derived<T> {
   readonly id: number;
-  private compute: () => T;
-  private cached: T | undefined;
-  private dirty = true;
-  private subscribers = new Set<Subscriber>();
-  private unsubscribeFns: (() => void)[] = [];
+  readonly path: PathKey;
+  private _node: DerivedNode<T>;
+  private _tracker: (() => void) | null = null;
+  private _sources: Set<ReactiveNode> = new Set();
 
-  constructor(fn: () => T, options: DerivedOptions = {}) {
-    this.id = generateId();
-    this.compute = fn;
+  constructor(path: PathKey, fn: () => T, options: DerivedOptions = {}) {
+    this.id = parseInt(generateUniqueId(), 36);
+    this.path = path;
+    this._node = getOrCreateNode(path, "derived") as DerivedNode<T>;
+    this._node.compute = fn;
 
     if (options.eager) {
       this.recompute();
@@ -23,66 +38,82 @@ export class Derived<T> {
   }
 
   private recompute(): void {
-    const previousComputation = getGlobalActiveComputation();
-    
+    // Unsubscribe from previous sources using the old tracker
+    if (this._tracker) {
+      for (const source of this._sources) {
+        source.subscribers.delete(this._tracker);
+      }
+    }
+    this._sources.clear();
+
     const tracker = () => {
-      this.dirty = true;
-      this.notifySubscribers();
+      if (!this._node.dirty) {
+        this._node.dirty = true;
+        notifySubscribers(this._node);
+      }
     };
 
-    this.unsubscribeFns.forEach(fn => fn());
-    this.unsubscribeFns = [];
+    this._tracker = tracker;
+
+    const prevComputation = getGlobalActiveComputation();
 
     setGlobalActiveComputation(tracker);
-    
+
     try {
-      this.cached = this.compute();
+      this._node.cached = this._node.compute();
+      this._node.dirty = false;
     } finally {
-      setGlobalActiveComputation(previousComputation);
+      // Collect the sources that were tracked
+      const nodes = getAllNodes();
+      for (const node of nodes) {
+        if (node.subscribers.has(tracker)) {
+          this._sources.add(node);
+        }
+      }
+      setGlobalActiveComputation(prevComputation);
     }
-
-    this.dirty = false;
-  }
-
-  private notifySubscribers(): void {
-    this.subscribers.forEach((fn) => fn());
   }
 
   get(): T {
-    if (this.dirty) {
+    if (this._node.dirty) {
       this.recompute();
     }
-    trackDependency(this as any);
-    return this.cached!;
+    trackNode(this._node);
+    return this._node.cached;
   }
 
   subscribe(fn: Subscriber): () => void {
-    this.subscribers.add(fn);
-    return () => {
-      this.subscribers.delete(fn);
-    };
+    return subscribe(this._node, fn);
   }
 
   unsubscribe(fn: Subscriber): void {
-    this.subscribers.delete(fn);
+    unsubscribe(this._node, fn);
   }
 
   getSubscriberCount(): number {
-    return this.subscribers.size;
+    return this._node.subscribers.size;
   }
 
   isDirty(): boolean {
-    return this.dirty;
+    return this._node.dirty;
   }
 
   peek(): T {
-    if (this.dirty) {
+    if (this._node.dirty) {
       this.recompute();
     }
-    return this.cached!;
+    return this._node.cached;
+  }
+
+  get version(): number {
+    return this._node.version;
   }
 }
 
-export function derived<T>(fn: () => T, options?: DerivedOptions): Derived<T> {
-  return new Derived(fn, options);
+export function derived<T>(
+  path: PathKey,
+  fn: () => T,
+  options?: DerivedOptions,
+): Derived<T> {
+  return new Derived(path, fn, options);
 }

@@ -7,9 +7,10 @@ import {
   notifySignalRead,
   notifySignalWritten,
   captureGraph,
-  clearGraph
+  clearGraph,
+  registerSignal
 } from '../src/debug';
-import { Signal } from '../src/kernel';
+import { Signal, path } from '../src/kernel';
 
 describe('Context', () => {
   test('should create context with default value', () => {
@@ -88,7 +89,7 @@ describe('Debug', () => {
     const onSignalCreated = jest.fn();
     enableDebug({ onSignalCreated });
     
-    const sig = new Signal(42);
+    const sig = new Signal(path("debug", "test1"), 42);
     notifySignalCreated(sig, 'test-signal');
     
     expect(onSignalCreated).toHaveBeenCalledWith(sig, 'test-signal');
@@ -98,7 +99,7 @@ describe('Debug', () => {
     const onSignalRead = jest.fn();
     enableDebug({ onSignalRead });
     
-    const sig = new Signal(42);
+    const sig = new Signal(path("debug", "test2"), 42);
     notifySignalRead(sig);
     sig.get();
     
@@ -109,7 +110,7 @@ describe('Debug', () => {
     const onSignalWritten = jest.fn();
     enableDebug({ onSignalWritten });
     
-    const sig = new Signal(42);
+    const sig = new Signal(path("debug", "test3"), 42);
     notifySignalWritten(sig, 42, 100);
     
     expect(onSignalWritten).toHaveBeenCalledWith(sig, 42, 100);
@@ -118,8 +119,11 @@ describe('Debug', () => {
   test('should capture graph', () => {
     clearGraph();
     
-    const sig1 = new Signal(1);
-    const sig2 = new Signal(2);
+    const sig1 = new Signal(path("debug", "graph1"), 1);
+    const sig2 = new Signal(path("debug", "graph2"), 2);
+    
+    registerSignal(sig1);
+    registerSignal(sig2);
     
     const graph = captureGraph();
     

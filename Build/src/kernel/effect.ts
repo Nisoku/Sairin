@@ -1,92 +1,99 @@
-import { getGlobalActiveComputation, setGlobalActiveComputation } from './dependency';
-import { scheduleEffect } from './batch';
+import {
+  getGlobalActiveComputation,
+  setGlobalActiveComputation,
+} from "./dependency";
+import { scheduleEffect } from "./batch";
+import { getSairinLogger } from "./config";
 
 export type CleanupFn = (() => void) | void;
 
-let cleanupStack: CleanupFn[] = [];
+type ScheduleFn = (runner: () => void) => void;
 
-export function onCleanup(fn: () => void): void {
-  cleanupStack.push(fn);
+interface EffectContext {
+  cleanups: CleanupFn[];
 }
 
-function runCleanup(): void {
-  while (cleanupStack.length > 0) {
-    const fn = cleanupStack.pop();
+let currentEffect: EffectContext | null = null;
+
+export function onCleanup(fn: () => void): void {
+  if (currentEffect) {
+    currentEffect.cleanups.push(fn);
+  }
+}
+
+function runCleanup(cleanups: CleanupFn[]): void {
+  while (cleanups.length > 0) {
+    const fn = cleanups.pop();
     if (fn) fn();
   }
 }
 
-export function effect(fn: () => CleanupFn): () => void {
+function createEffect(fn: () => CleanupFn, schedule: ScheduleFn): () => void {
   let cleanupFn: CleanupFn;
   let disposed = false;
-  let dependencies: Set<any> = new Set();
+  const logger = getSairinLogger();
+  const effectContext: EffectContext = { cleanups: [] };
 
-  const run = () => {
+  const runner = () => {
     if (disposed) return;
 
-    runCleanup();
-    if (cleanupFn) cleanupFn();
+    // Run any onCleanup-registered handlers first
+    runCleanup(effectContext.cleanups);
 
-    const previousComputation = getGlobalActiveComputation();
-    setGlobalActiveComputation(run);
-    
+    // Call the previous cleanup function if it exists
+    if (typeof cleanupFn === "function") {
+      cleanupFn();
+    }
+
+    const prev = getGlobalActiveComputation();
+    const prevEffect = currentEffect;
+    currentEffect = effectContext;
+    effectContext.cleanups = [];
+
+    setGlobalActiveComputation(runner);
+
     try {
       cleanupFn = fn();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (logger) {
+        logger.error(`Effect threw: ${message}`, {
+          tags: ["effect", "runtime"],
+        });
+      }
     } finally {
-      setGlobalActiveComputation(previousComputation);
+      setGlobalActiveComputation(prev);
+      currentEffect = prevEffect;
     }
   };
 
-  scheduleEffect(run);
+  schedule(runner);
 
   return () => {
     disposed = true;
-    runCleanup();
-    if (cleanupFn) {
-      if (typeof cleanupFn === 'function') {
-        cleanupFn();
-      }
+    runCleanup(effectContext.cleanups);
+    if (typeof cleanupFn === "function") {
+      cleanupFn();
     }
   };
 }
 
-export function effectSync(fn: () => CleanupFn): () => void {
-  let cleanupFn: CleanupFn;
-  let disposed = false;
+export const effect = (fn: () => CleanupFn) => createEffect(fn, scheduleEffect);
+export const effectSync = (fn: () => CleanupFn) => createEffect(fn, (r) => r());
 
-  const run = () => {
-    if (disposed) return;
-
-    runCleanup();
-    if (cleanupFn) cleanupFn();
-
-    const previousComputation = getGlobalActiveComputation();
-    setGlobalActiveComputation(run);
-    
-    try {
-      cleanupFn = fn();
-    } finally {
-      setGlobalActiveComputation(previousComputation);
+export const effectIdle = (fn: () => CleanupFn) =>
+  createEffect(fn, (runner) => {
+    if (typeof requestIdleCallback !== "undefined") {
+      requestIdleCallback(() => runner());
+    } else {
+      setTimeout(() => runner(), 0);
     }
-  };
-
-  run();
-
-  return () => {
-    disposed = true;
-    runCleanup();
-    if (cleanupFn) {
-      if (typeof cleanupFn === 'function') {
-        cleanupFn();
-      }
-    }
-  };
-}
+  });
 
 export function untracked<T>(fn: () => T): T {
   const previousComputation = getGlobalActiveComputation();
   setGlobalActiveComputation(null);
-  
+
   try {
     return fn();
   } finally {

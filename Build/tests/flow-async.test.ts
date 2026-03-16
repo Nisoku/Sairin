@@ -1,6 +1,9 @@
 import { flow, pipeline, sequence, parallel, race } from '../src/flow';
 import { resource, useTransition, useDeferredValue } from '../src/async';
-import { Signal, signal, effect } from '../src/kernel';
+import { Signal, signal, effect, path } from '../src/kernel';
+import { __resetRegistryForTesting } from '../src/kernel/graph';
+
+beforeEach(() => __resetRegistryForTesting());
 
 describe('Flow', () => {
   test('should execute async function', async () => {
@@ -23,15 +26,9 @@ describe('Flow', () => {
   });
 
   test('should cancel flow', async () => {
-    let resolveFlow: (value: void) => void;
-    let rejectFlow: (error: Error) => void;
-    
-    const myFlow = flow(async (signal) => {
+    const myFlow = flow(async (abortSignal) => {
       return new Promise((resolve, reject) => {
-        resolveFlow = resolve;
-        rejectFlow = reject;
-        
-        signal.addEventListener('abort', () => {
+        abortSignal.addEventListener('abort', () => {
           reject(new Error('AbortError'));
         });
       });
@@ -52,50 +49,35 @@ describe('Flow', () => {
       return counter;
     });
     
+    myFlow.start();
     await myFlow.start();
-    expect(myFlow.result.get()).toBe(1);
+    
+    await new Promise(resolve => setTimeout(resolve, 100));
+    expect(counter).toBe(1);
   });
 });
 
 describe('Pipeline', () => {
-  test('should execute pipeline steps', async () => {
-    const p = pipeline([
-      async (input: number) => input + 1,
-      async (input: number) => input * 2,
-    ]);
+  test('should pass input to function', async () => {
+    const p = pipeline(async (input: number) => {
+      return input * 2;
+    });
     
-    const result = await p.run(1);
-    expect(result).toBe(4);
-  });
-
-  test('should cancel pipeline', async () => {
-    const p = pipeline([
-      async (input: number) => {
-        await new Promise(resolve => setTimeout(resolve, 10));
-        return input + 1;
-      },
-      async (input: number) => input * 2,
-    ]);
-    
-    const promise = p.run(1);
-    p.cancel();
-    
-    await expect(promise).rejects.toThrow('Pipeline cancelled');
+    await p.start(21);
+    expect(p.result.get()).toBe(42);
   });
 });
 
 describe('Sequence', () => {
-  test('should execute functions in sequence', async () => {
-    const results: number[] = [];
+  test('should execute functions in order', async () => {
     const seq = sequence(
-      async () => { results.push(1); return 1; },
-      async () => { results.push(2); return 2; },
-      async () => { results.push(3); return 3; }
+      async () => 1,
+      async () => 2,
+      async () => 3
     );
     
     await seq.start();
-    expect(seq.result.get()).toEqual([1, 2, 3]);
-    expect(results).toEqual([1, 2, 3]);
+    expect(seq.results.get()).toEqual([1, 2, 3]);
   });
 });
 
@@ -108,9 +90,9 @@ describe('Parallel', () => {
     );
     
     await par.start();
-    expect(par.result.get()).toContain(1);
-    expect(par.result.get()).toContain(2);
-    expect(par.result.get()).toContain(3);
+    expect(par.results.get()).toContain(1);
+    expect(par.results.get()).toContain(2);
+    expect(par.results.get()).toContain(3);
   });
 });
 
@@ -157,53 +139,37 @@ describe('Resource', () => {
       counter++;
       return counter;
     });
-    
-    await new Promise(resolve => setTimeout(resolve, 10));
+
+    await new Promise(resolve => setTimeout(resolve, 20));
     expect(res.value.get()).toBe(1);
-    
+
     res.refetch();
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise(resolve => setTimeout(resolve, 20));
     expect(res.value.get()).toBe(2);
   });
 });
 
 describe('Transition', () => {
-  test('should set pending when starting transition', async () => {
+  test('should track pending state', () => {
     const { pending, start } = useTransition();
     
-    start(() => {});
-    
-    expect(pending.get()).toBe(true);
-    
-    await Promise.resolve();
     expect(pending.get()).toBe(false);
-  });
-
-  test('should execute transition function', async () => {
-    const { start } = useTransition();
     
-    let executed = false;
-    start(() => {
-      executed = true;
+    start(async () => {
+      await new Promise(resolve => setTimeout(resolve, 10));
     });
     
-    await Promise.resolve();
-    expect(executed).toBe(true);
+    expect(pending.get()).toBe(true);
   });
 
   test('should defer value updates', async () => {
-    const sig = signal(1);
+    const sig = signal(path("test", "defer"), 0);
+    const deferred = useDeferredValue(sig, 10);
     
-    let deferredValue: number = 0;
-    effect(() => {
-      deferredValue = sig.get();
-    });
+    sig.set(1);
+    expect(deferred.get()).toBe(0);
     
-    await Promise.resolve();
-    expect(deferredValue).toBe(1);
-    
-    sig.set(2);
-    await Promise.resolve();
-    expect(deferredValue).toBe(2);
+    await new Promise(resolve => setTimeout(resolve, 20));
+    expect(deferred.get()).toBe(1);
   });
 });

@@ -15,7 +15,7 @@ export function createContext<T>(defaultValue: T, name?: string): Context<T> {
     Provider: ({ value }: { value: T; children?: any }) => {
       const stack = contextStacks.get(contextId)!;
       stack.push(value);
-      
+
       return () => {
         stack.pop();
       };
@@ -39,7 +39,10 @@ export function useContext<T>(context: Context<T>): T {
   return context.consume();
 }
 
-export function useContextProvider<T>(context: Context<T>, value: T): () => void {
+export function useContextProvider<T>(
+  context: Context<T>,
+  value: T,
+): () => void {
   return context.Provider({ value });
 }
 
@@ -50,7 +53,7 @@ export interface CreateContextOptions<T> {
 
 export function createContextWithOptions<T>(
   defaultValue: T,
-  options?: CreateContextOptions<T>
+  options?: CreateContextOptions<T>,
 ): Context<T> {
   return createContext(defaultValue, options?.name);
 }
