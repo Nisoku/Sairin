@@ -88,30 +88,48 @@ export function pipeline<T, R>(
   const result = signal<R | null>(path("pipeline", id, "result"), null);
   const error = signal<Error | null>(path("pipeline", id, "error"), null);
   let abortController: AbortController | null = null;
+  let currentPromise: Promise<void> | null = null;
 
   return {
     running,
     result,
     error,
     start: async (input: T) => {
+      if (running.peek()) {
+        if (currentPromise) {
+          await currentPromise;
+        }
+        return;
+      }
+
       const runController = new AbortController();
       abortController = runController;
       running.set(true);
       error.set(null);
 
+      const perform = async () => {
+        try {
+          const data = await fn(input, runController.signal);
+          if (!runController.signal.aborted && abortController === runController) {
+            result.set(data);
+          }
+        } catch (e) {
+          if (!runController.signal.aborted && abortController === runController) {
+            error.set(e instanceof Error ? e : new Error(String(e)));
+          }
+        } finally {
+          if (abortController === runController) {
+            running.set(false);
+          }
+        }
+      };
+
+      currentPromise = perform();
+
       try {
-        const data = await fn(input, runController.signal);
-        if (!runController.signal.aborted && abortController === runController) {
-          result.set(data);
-        }
+        await currentPromise;
       } catch (e) {
-        if (!runController.signal.aborted && abortController === runController) {
-          error.set(e instanceof Error ? e : new Error(String(e)));
-        }
-      } finally {
-        if (abortController === runController) {
-          running.set(false);
-        }
+        // Ignore abort errors
       }
     },
     cancel: () => {

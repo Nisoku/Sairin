@@ -3,32 +3,9 @@ import {
   setGlobalActiveComputation,
 } from "./dependency";
 import { scheduleEffect } from "./batch";
-import {
-  subscribe,
-  unsubscribe,
-  getOrCreateNode,
-  type PathKey,
-  type EffectNode,
-} from "./graph";
 import { getSairinLogger } from "./config";
 
 export type CleanupFn = (() => void) | void;
-
-const EFFECT_POOL_SIZE = 10;
-const effectPool: CleanupFn[] = [];
-
-function getEffectFromPool(): CleanupFn {
-  if (effectPool.length > 0) {
-    return effectPool.pop()!;
-  }
-  return undefined;
-}
-
-function returnEffectToPool(cleanup: CleanupFn): void {
-  if (effectPool.length < EFFECT_POOL_SIZE) {
-    effectPool.push(cleanup);
-  }
-}
 
 let cleanupStack: CleanupFn[] = [];
 
@@ -46,7 +23,7 @@ function runCleanup(): void {
 type ScheduleFn = (runner: () => void) => void;
 
 function createEffect(fn: () => CleanupFn, schedule: ScheduleFn): () => void {
-  let cleanupFn = getEffectFromPool();
+  let cleanupFn: CleanupFn;
   let disposed = false;
   const logger = getSairinLogger();
 
@@ -84,7 +61,6 @@ function createEffect(fn: () => CleanupFn, schedule: ScheduleFn): () => void {
     if (typeof cleanupFn === "function") {
       cleanupFn();
     }
-    returnEffectToPool(cleanupFn);
   };
 }
 

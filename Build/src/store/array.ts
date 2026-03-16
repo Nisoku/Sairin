@@ -1,4 +1,4 @@
-import { Signal, signal, Subscriber, trackDependency } from "../kernel";
+import { Signal, signal, Subscriber } from "../kernel";
 import { path } from "../kernel/path";
 
 let arrayId = 0;

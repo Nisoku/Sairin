@@ -64,14 +64,14 @@ export interface DeferredValueOptions<T> {
 export function deferred<T>(
   value: Signal<T>,
   options: DeferredValueOptions<T> = {},
-): Signal<T> {
+): { signal: Signal<T>; dispose: () => void } {
   const { timeoutMs = 0, equals = Object.is } = options;
   const deferredValue = signal(
     path("transition", "deferred", generateUniqueId()),
     value.peek(),
   );
 
-  effect(() => {
+  const dispose = effect(() => {
     const newValue = value.get();
 
     if (equals(deferredValue.peek(), newValue)) {
@@ -93,11 +93,11 @@ export function deferred<T>(
     }
   });
 
-  return deferredValue;
+  return { signal: deferredValue, dispose };
 }
 
 export function useDeferred<T>(value: Signal<T>, timeoutMs = 0): Signal<T> {
-  return deferred(value, { timeoutMs });
+  return deferred(value, { timeoutMs }).signal;
 }
 
 export function useDeferredValue<T>(
@@ -105,11 +105,11 @@ export function useDeferredValue<T>(
   timeoutMs = 0,
 ): Signal<T> {
   if (value instanceof Signal) {
-    return deferred(value, { timeoutMs });
+    return deferred(value, { timeoutMs }).signal;
   }
   const sig = signal(
     path("transition", "deferredValue", generateUniqueId()),
     value,
   );
-  return deferred(sig, { timeoutMs });
+  return deferred(sig, { timeoutMs }).signal;
 }

@@ -162,13 +162,18 @@ export function watch(
   pattern: PathKey,
   callback: (path: PathKey, kind: ReactiveKind) => void,
 ): () => void {
-  const registeredCallbacks: (() => void)[] = [];
+  const nodeHandlers: Map<ReactiveNode, Set<() => void>> = new Map();
 
   const checkAndSubscribe = (node: ReactiveNode) => {
     if (matchesPath(pattern, node.path)) {
       const handler = () => callback(node.path, node.kind);
-      registeredCallbacks.push(handler);
       node.subscribers.add(handler);
+      const handlers = nodeHandlers.get(node);
+      if (handlers) {
+        handlers.add(handler);
+      } else {
+        nodeHandlers.set(node, new Set([handler]));
+      }
     }
   };
 
@@ -177,12 +182,12 @@ export function watch(
   }
 
   return () => {
-    for (const node of nodeRegistry.values()) {
-      for (const handler of registeredCallbacks) {
+    for (const [node, handlers] of nodeHandlers) {
+      for (const handler of handlers) {
         node.subscribers.delete(handler);
       }
     }
-    registeredCallbacks.length = 0;
+    nodeHandlers.clear();
   };
 }
 
@@ -356,15 +361,13 @@ export function scheduleIncrementalCleanup(
       // Finished, reset for next batch
       scheduledCleanupNodes.length = 0;
       cleanupIndex = 0;
+      cleanupScheduled = false;
     }
   };
 
   if (!cleanupScheduled) {
     cleanupScheduled = true;
-    queueMicrotask(() => {
-      cleanupScheduled = false;
-      cleanupChunk();
-    });
+    queueMicrotask(cleanupChunk);
   }
 }
 

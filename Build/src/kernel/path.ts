@@ -61,45 +61,48 @@ export function matchesPath(pattern: PathKey, target: PathKey): boolean {
   }
 
   if (pattern.globType === "deep") {
-    // Implement segment-wise matching handling '**' as zero-or-more segments
     const p = pattern.segments;
     const t = target.segments;
 
-    let pi = 0;
-    let ti = 0;
-
-    while (pi < p.length && ti < t.length) {
-      if (p[pi] === "**") {
-        // If '**' is last pattern segment it matches the rest.
-        if (pi === p.length - 1) return true;
-        // Otherwise try to find a match for the next pattern segment
-        const next = p[pi + 1];
-        // advance ti until we find next (or run out)
-        while (ti < t.length && t[ti] !== next) {
-          ti++;
-        }
-        // move past the '**' and continue
-        pi++;
-        continue;
+    // Recursive backtracking matcher for ** handling
+    function match(pi: number, ti: number): boolean {
+      // Both pattern and target consumed, success
+      if (pi >= p.length && ti >= t.length) return true;
+      
+      // Pattern exhausted but target still has segments, fail
+      if (pi >= p.length) return false;
+      
+      // Target exhausted but pattern still has non-** segments, fail
+      if (ti >= t.length) {
+        // Trailing ** can match empty
+        if (p[pi] === "**") return match(pi + 1, ti);
+        return false;
       }
 
-      if (p[pi] === "*") {
-        pi++;
-        ti++;
-        continue;
+      const pSeg = p[pi];
+
+      if (pSeg === "*") {
+        // Single wildcard matches one segment
+        return match(pi + 1, ti + 1);
       }
 
-      if (p[pi] !== t[ti]) return false;
+      if (pSeg === "**") {
+        // ** can match zero or more segments
+        // Try matching zero segments (skip **)
+        if (match(pi + 1, ti)) return true;
+        // Try matching one or more segments (consume current target segment)
+        return match(pi, ti + 1);
+      }
 
-      pi++;
-      ti++;
+      // Literal match
+      if (pSeg === t[ti]) {
+        return match(pi + 1, ti + 1);
+      }
+
+      return false;
     }
 
-    // If we've consumed pattern, success only if we've also consumed target
-    if (pi === p.length) return ti === t.length;
-    // Remaining pattern could be a trailing '**'
-    if (pi === p.length - 1 && p[pi] === "**") return true;
-    return false;
+    return match(0, 0);
   }
 
   if (pattern.globType === "shallow") {

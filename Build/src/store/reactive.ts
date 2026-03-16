@@ -35,7 +35,33 @@ export function reactive<T extends object>(
   for (const key of Object.keys(obj) as (keyof T)[]) {
     const value = obj[key];
 
-    if (isObject(value) && !Array.isArray(value)) {
+    if (Array.isArray(value)) {
+      // Handle arrays by wrapping elements with signals
+      const arrSignal = signal(path(storePath, String(key)), value);
+      result[key] = new Proxy(arrSignal, {
+        get(target, prop) {
+          if (prop === "length") return target.get().length;
+          if (typeof prop === "number") return target.get()[prop];
+          if (prop === "get") return () => target.get();
+          return (target.get() as any)[prop];
+        },
+        set(target, prop, newValue) {
+          if (prop === "length") {
+            const arr = [...target.get()];
+            arr.length = newValue;
+            target.set(arr as any);
+            return true;
+          }
+          if (typeof prop === "number") {
+            const arr = [...target.get()];
+            arr[prop] = newValue;
+            target.set(arr as any);
+            return true;
+          }
+          return false;
+        },
+      });
+    } else if (isObject(value)) {
       result[key] = reactive(value, `${storePath}/${String(key)}`);
     } else {
       result[key] = signal(path(storePath, String(key)), value);

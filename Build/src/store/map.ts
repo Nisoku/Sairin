@@ -59,7 +59,9 @@ export class ReactiveMap<K, V> {
   }
 
   private notify(): void {
-    this.subscribers.forEach((fn) => fn());
+    for (const fn of this.subscribers) {
+      fn();
+    }
   }
 
   get(key: K): V | undefined {

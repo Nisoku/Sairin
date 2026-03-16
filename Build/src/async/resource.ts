@@ -61,6 +61,8 @@ export function resource<T>(
     refetch: load,
     abort: () => {
       abortController?.abort();
+      loading.set(false);
+      error.set(null);
     },
   };
 }
