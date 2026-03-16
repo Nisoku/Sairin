@@ -1,0 +1,139 @@
+:root[data-theme="light"] {
+  --ruby-primary: #0077b6;
+  --ruby-primary-light: #e3f2fd;
+  --ruby-primary-dark: #005f94;
+  --ruby-accent: #00b4d8;
+  --ruby-accent-light: #e0f7fa;
+  
+  --ruby-text: #1a1a2e;
+  --ruby-text-light: #4a4a5a;
+  --ruby-text-lightest: #7a7a8a;
+  
+  --ruby-background: #ffffff;
+  --ruby-background-alt: #f5f9fc;
+  
+  --ruby-border: #d0d8e0;
+  --ruby-border-light: #e8eef4;
+  
+  --bg-color: var(--ruby-background);
+  --text-color: var(--ruby-text);
+  --sidebar-bg: #f0f6fa;
+  --sidebar-text: var(--ruby-text-light);
+  --sidebar-link-active-bg: #e3f2fd;
+  --link-color: var(--ruby-primary);
+  --border-color: var(--ruby-border);
+  --code-bg: #e3f2fd;
+  --code-text: #005f94;
+  --header-bg: var(--ruby-background);
+  --header-border: var(--ruby-border);
+  
+  --shadow-sm: 0 2px 4px rgba(0, 119, 182, 0.1);
+  --shadow-md: 0 4px 8px rgba(0, 119, 182, 0.15);
+  --shadow-lg: 0 8px 16px rgba(0, 119, 182, 0.2);
+}
+
+:root[data-theme="dark"] {
+  --ruby-primary: #5eead4;
+  --ruby-primary-light: #134e4a;
+  --ruby-primary-dark: #99f6e4;
+  --ruby-accent: #22d3ee;
+  --ruby-accent-light: #164e63;
+  
+  --ruby-text: #f1f5f9;
+  --ruby-text-light: #cbd5e1;
+  --ruby-text-lightest: #94a3b8;
+  
+  --ruby-background: #0c1222;
+  --ruby-background-alt: #1e293b;
+  
+  --ruby-border: #334155;
+  --ruby-border-light: #1e293b;
+  
+  --bg-color: var(--ruby-background);
+  --text-color: var(--ruby-text);
+  --sidebar-bg: #0f172a;
+  --sidebar-text: var(--ruby-text-light);
+  --sidebar-link-active-bg: #1e3a5f;
+  --link-color: var(--ruby-primary);
+  --border-color: var(--ruby-border);
+  --code-bg: #1e293b;
+  --code-text: #99f6e4;
+  --header-bg: var(--ruby-background);
+  --header-border: var(--ruby-border);
+  
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
+}
+
+.header {
+  background: linear-gradient(135deg, #0077b6 0%, #00b4d8 100%) !important;
+}
+
+.header .logo img {
+  filter: brightness(0) invert(1);
+}
+
+.header .nav-link {
+  color: white !important;
+}
+
+.header .nav-link:hover {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.sidebar .nav-item.active {
+  background: linear-gradient(135deg, var(--ruby-primary) 0%, var(--ruby-accent) 100%) !important;
+  color: white !important;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--ruby-primary) 0%, var(--ruby-accent) 100%) !important;
+  border-color: var(--ruby-primary) !important;
+  color: white !important;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--ruby-primary-dark) 0%, var(--ruby-primary) 100%) !important;
+}
+
+a {
+  color: var(--ruby-primary) !important;
+}
+
+a:hover {
+  color: var(--ruby-primary-dark) !important;
+}
+
+pre {
+  border-left: 3px solid var(--ruby-primary) !important;
+}
+
+.sidebar nav li a:hover {
+  color: var(--ruby-primary) !important;
+}
+
+th {
+  background-color: var(--ruby-primary-light) !important;
+  color: var(--ruby-primary-dark) !important;
+}
+
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] .sidebar,
+:root[data-theme="dark"] .content-area {
+  color: #f1f5f9 !important;
+}
+
+:root[data-theme="dark"] h1,
+:root[data-theme="dark"] h2,
+:root[data-theme="dark"] h3,
+:root[data-theme="dark"] h4,
+:root[data-theme="dark"] h5,
+:root[data-theme="dark"] h6 {
+  color: #f1f5f9 !important;
+}
+
+:root[data-theme="dark"] code,
+:root[data-theme="dark"] pre {
+  color: #e2e8f0 !important;
+}

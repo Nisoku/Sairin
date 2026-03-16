@@ -13,6 +13,7 @@ module.exports = {
     name: 'ruby',
     defaultMode: 'system',
     enableModeToggle: true,
+    customCss: ['/assets/css/theme.css'],
   },
 
   navigation: [
