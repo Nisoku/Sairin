@@ -44,7 +44,7 @@ export class Signal<T> {
       const attempted = options?.owner ?? "";
       if (!assertLock(this.path, attempted, attempted)) return;
     }
-    
+
     if (Object.is(this._node.value, next)) return;
     this._node.value = next;
     notifySubscribers(this._node);
@@ -82,16 +82,14 @@ export function signal<T>(pathOrInitial: PathKey | T, initial?: T): Signal<T> {
     if (resolved) {
       path = resolved;
     }
-    // Check for existing signal node
+    // Check for existing signal node and return it if found
     const existingNode = getNode(path);
     if (existingNode && existingNode.kind === "signal") {
-      return new Signal(path, undefined as unknown as T, false);
+      return new Signal(path, (existingNode as any).value, false);
     }
     return new Signal(path, initial as T, true);
   }
-  throw new Error(
-    "signal() requires a path as first argument in Sairin",
-  );
+  throw new Error("signal() requires a path as first argument in Sairin");
 }
 
 export function isSignal<T>(value: unknown): value is Signal<T> {

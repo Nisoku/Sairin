@@ -57,7 +57,9 @@ function createEffect(fn: () => CleanupFn, schedule: ScheduleFn): () => void {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       if (logger) {
-        logger.error(`Effect threw: ${message}`, { tags: ["effect", "runtime"] });
+        logger.error(`Effect threw: ${message}`, {
+          tags: ["effect", "runtime"],
+        });
       }
     } finally {
       setGlobalActiveComputation(prev);
@@ -77,15 +79,16 @@ function createEffect(fn: () => CleanupFn, schedule: ScheduleFn): () => void {
 }
 
 export const effect = (fn: () => CleanupFn) => createEffect(fn, scheduleEffect);
-export const effectSync = (fn: () => CleanupFn) => createEffect(fn, r => r());
+export const effectSync = (fn: () => CleanupFn) => createEffect(fn, (r) => r());
 
-export const effectIdle = (fn: () => CleanupFn) => createEffect(fn, (runner) => {
-  if (typeof requestIdleCallback !== "undefined") {
-    requestIdleCallback(() => runner());
-  } else {
-    setTimeout(() => runner(), 0);
-  }
-});
+export const effectIdle = (fn: () => CleanupFn) =>
+  createEffect(fn, (runner) => {
+    if (typeof requestIdleCallback !== "undefined") {
+      requestIdleCallback(() => runner());
+    } else {
+      setTimeout(() => runner(), 0);
+    }
+  });
 
 export function untracked<T>(fn: () => T): T {
   const previousComputation = getGlobalActiveComputation();

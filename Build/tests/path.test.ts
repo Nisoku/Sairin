@@ -151,9 +151,9 @@ describe('path', () => {
       expect(parent?.raw).toBe("/user");
     });
 
-    test('should return null for root path', () => {
+    test('should return the path itself for single-segment path', () => {
       const p = path("user");
-      expect(getParentPath(p)).toBe(null);
+      expect(getParentPath(p)).toEqual(path("user"));
     });
 
     test('should ignore glob in parent calculation', () => {

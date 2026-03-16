@@ -1,5 +1,5 @@
 import { Signal, signal } from "../kernel/signal";
-import { path } from "../kernel/path";
+import { path, isPathKey, type PathKey } from "../kernel/path";
 
 let storeId = 0;
 
@@ -25,10 +25,12 @@ function isObject(value: unknown): value is object {
 
 export function reactive<T extends object>(
   obj: T,
-  basePath?: string,
+  basePath?: string | PathKey,
 ): ReactiveObject<T> {
   const id = nextStoreId();
-  const storePath = basePath || `store_${id}`;
+  const storePath = isPathKey(basePath)
+    ? basePath.raw
+    : basePath || `store_${id}`;
   const result: any = {};
   const signal$ = signal(path(storePath, "$"), obj);
 
@@ -62,7 +64,7 @@ export function reactive<T extends object>(
         },
       });
     } else if (isObject(value)) {
-      result[key] = reactive(value, path(storePath, String(key)).raw);
+      result[key] = reactive(value, path(storePath, String(key)));
     } else {
       result[key] = signal(path(storePath, String(key)), value);
     }
@@ -81,12 +83,18 @@ export function reactive<T extends object>(
       if (prop === "$" || prop === "$raw") {
         throw new Error("Cannot set $ or $raw directly");
       }
-      if (target[prop] && target[prop] instanceof Signal) {
-        target[prop].set(newValue);
+      const existingProp = target[prop];
+      if (existingProp && existingProp instanceof Signal) {
+        existingProp.set(newValue);
+      } else if (isObject(newValue) && newValue !== null) {
+        // Convert to ReactiveObject for nested objects
+        const parentSegments = target.$.path.segments;
+        const childPath = path(...parentSegments, String(prop));
+        target[prop] = reactive(newValue, childPath);
       } else {
         // Convert to Signal to maintain reactive invariant
-        const storePath = target.$.path.raw;
-        target[prop] = signal(path(storePath, String(prop)), newValue);
+        const parentSegments = target.$.path.segments;
+        target[prop] = signal(path(...parentSegments, String(prop)), newValue);
       }
       return true;
     },

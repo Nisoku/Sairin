@@ -1,7 +1,4 @@
-import type {
-  SatoriInstance,
-  SatoriLogger,
-} from "@nisoku/satori-log";
+import type { SatoriInstance, SatoriLogger } from "@nisoku/satori-log";
 
 export type LockViolationBehavior = "throw" | "warn" | "silent";
 

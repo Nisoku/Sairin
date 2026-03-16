@@ -7,44 +7,12 @@ function nextMapId(): string {
   return (++mapId).toString(36);
 }
 
-// Stable per-key id assignment to avoid collisions when using String(key)
-const keyIdMap = new WeakMap<object, string>();
-const primitiveKeyIdMap = new Map<string | number | symbol, string>();
-let nextKeyId = 0;
-
-function keyToId<K>(key: K): string {
-  if ((typeof key === "object" || typeof key === "function") && key !== null) {
-    const obj = key as unknown as object;
-    let id = keyIdMap.get(obj);
-    if (!id) {
-      id = (++nextKeyId).toString(36);
-      keyIdMap.set(obj, id);
-    }
-    return id;
-  }
-  // primitives, use original value as key to avoid collisions
-  const prim = key as string | number | symbol;
-  let id = primitiveKeyIdMap.get(prim);
-  if (!id) {
-    id = (++nextKeyId).toString(36);
-    primitiveKeyIdMap.set(prim, id);
-  }
-  return id;
-}
-
-function removeKeyId<K>(key: K): void {
-  if ((typeof key === "object" || typeof key === "function") && key !== null) {
-    const obj = key as unknown as object;
-    keyIdMap.delete(obj);
-  } else {
-    const prim = key as string | number | symbol;
-    primitiveKeyIdMap.delete(prim);
-  }
-}
-
 export class ReactiveMap<K, V> {
   private id: string;
   private entries = new Map<K, Signal<V>>();
+  private keyIds = new WeakMap<object, string>();
+  private primKeyIds = new Map<string | number | symbol, string>();
+  private nextKeyId = 0;
   private sizeSignal: Signal<number>;
   private subscribers = new Set<Subscriber>();
 
@@ -52,10 +20,43 @@ export class ReactiveMap<K, V> {
     this.id = nextMapId();
     this.sizeSignal = signal(path("map", this.id, "size"), 0);
     for (const [key, value] of initial) {
-      const kid = keyToId(key as any);
+      const kid = this.getKeyId(key);
       this.entries.set(key, signal(path("map", this.id, kid), value));
     }
     this.sizeSignal.set(this.entries.size);
+  }
+
+  private getKeyId(key: K): string {
+    if (
+      (typeof key === "object" || typeof key === "function") &&
+      key !== null
+    ) {
+      let id = this.keyIds.get(key as object);
+      if (!id) {
+        id = (this.nextKeyId++).toString(36);
+        this.keyIds.set(key as object, id);
+      }
+      return id;
+    }
+    const prim = key as string | number | symbol;
+    let id = this.primKeyIds.get(prim);
+    if (!id) {
+      id = (this.nextKeyId++).toString(36);
+      this.primKeyIds.set(prim, id);
+    }
+    return id;
+  }
+
+  private removeKeyId(key: K): void {
+    if (
+      (typeof key === "object" || typeof key === "function") &&
+      key !== null
+    ) {
+      this.keyIds.delete(key as object);
+    } else {
+      const prim = key as string | number | symbol;
+      this.primKeyIds.delete(prim);
+    }
   }
 
   private notify(): void {
@@ -65,7 +66,7 @@ export class ReactiveMap<K, V> {
   }
 
   get(key: K): V | undefined {
-    this.sizeSignal.get(); // track membership changes
+    this.sizeSignal.get();
     return this.entries.get(key)?.get();
   }
 
@@ -74,7 +75,7 @@ export class ReactiveMap<K, V> {
     if (existing) {
       existing.set(value);
     } else {
-      const kid = keyToId(key as any);
+      const kid = this.getKeyId(key);
       this.entries.set(key, signal(path("map", this.id, kid), value));
       this.sizeSignal.set(this.entries.size);
     }
@@ -82,14 +83,14 @@ export class ReactiveMap<K, V> {
   }
 
   has(key: K): boolean {
-    this.sizeSignal.get(); // track membership changes
+    this.sizeSignal.get();
     return this.entries.has(key);
   }
 
   delete(key: K): boolean {
     const result = this.entries.delete(key);
     if (result) {
-      removeKeyId(key);
+      this.removeKeyId(key);
       this.sizeSignal.set(this.entries.size);
       this.notify();
     }
@@ -98,7 +99,7 @@ export class ReactiveMap<K, V> {
 
   clear(): void {
     for (const key of this.entries.keys()) {
-      removeKeyId(key);
+      this.removeKeyId(key);
     }
     this.entries.clear();
     this.sizeSignal.set(0);
@@ -114,7 +115,7 @@ export class ReactiveMap<K, V> {
   }
 
   values(): IterableIterator<V> {
-    this.sizeSignal.get(); // track membership changes
+    this.sizeSignal.get();
     function* gen(this: ReactiveMap<K, V>) {
       for (const sig of this.entries.values()) {
         yield sig.get();
@@ -124,7 +125,7 @@ export class ReactiveMap<K, V> {
   }
 
   entriesIterable(): IterableIterator<[K, V]> {
-    this.sizeSignal.get(); // track membership changes
+    this.sizeSignal.get();
     function* gen(this: ReactiveMap<K, V>) {
       for (const [key, sig] of this.entries.entries()) {
         yield [key, sig.get()] as [K, V];
@@ -134,14 +135,14 @@ export class ReactiveMap<K, V> {
   }
 
   forEach(fn: (value: V, key: K, map: ReactiveMap<K, V>) => void): void {
-    this.sizeSignal.get(); // track membership changes
+    this.sizeSignal.get();
     for (const [key, sig] of this.entries.entries()) {
       fn(sig.get(), key, this);
     }
   }
 
   toArray(): [K, V][] {
-    this.sizeSignal.get(); // track membership changes
+    this.sizeSignal.get();
     const result: [K, V][] = [];
     for (const [key, sig] of this.entries.entries()) {
       result.push([key, sig.get()]);

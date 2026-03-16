@@ -49,11 +49,17 @@ export function flow<T>(fn: (signal: AbortSignal) => Promise<T>): Flow<T> {
       const perform = async () => {
         try {
           const data = await fn(runController.signal);
-          if (!runController.signal.aborted && abortController === runController) {
+          if (
+            !runController.signal.aborted &&
+            abortController === runController
+          ) {
             result.set(data);
           }
         } catch (e) {
-          if (!runController.signal.aborted && abortController === runController) {
+          if (
+            !runController.signal.aborted &&
+            abortController === runController
+          ) {
             error.set(e instanceof Error ? e : new Error(String(e)));
           }
         } finally {
@@ -89,6 +95,12 @@ export interface Pipeline<T, R> {
 export function pipeline<T, R>(
   fn: (input: T, signal: AbortSignal) => Promise<R>,
 ): Pipeline<T, R> {
+  /**
+   * Pipeline function, last-write-wins behavior.
+   * Concurrent calls to start() will not be queued or merged.
+   * Earlier runs may be orphaned (their results/errors discarded).
+   * Callers must manage concurrency.
+   */
   const id = nextFlowId();
   const running = signal(path("pipeline", id, "running"), false);
   const result = signal<R | null>(path("pipeline", id, "result"), null);
@@ -116,11 +128,17 @@ export function pipeline<T, R>(
       const perform = async () => {
         try {
           const data = await fn(input, runController.signal);
-          if (!runController.signal.aborted && abortController === runController) {
+          if (
+            !runController.signal.aborted &&
+            abortController === runController
+          ) {
             result.set(data);
           }
         } catch (e) {
-          if (!runController.signal.aborted && abortController === runController) {
+          if (
+            !runController.signal.aborted &&
+            abortController === runController
+          ) {
             error.set(e instanceof Error ? e : new Error(String(e)));
           }
         } finally {
@@ -241,7 +259,9 @@ export function parallel<T>(
           allResults.push(res.value as T);
         } else {
           const reason = res.reason;
-          allErrors.push(reason instanceof Error ? reason : new Error(String(reason)));
+          allErrors.push(
+            reason instanceof Error ? reason : new Error(String(reason)),
+          );
         }
       }
 

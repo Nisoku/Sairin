@@ -90,9 +90,10 @@ export class ReactiveArray<T> {
     this.update((arr) => {
       const result = [...arr];
       // When deleteCount is undefined, JS splice deletes through the end
-      const effectiveDelete = deleteCount === undefined
-        ? Math.max(0, result.length - start)
-        : deleteCount;
+      const effectiveDelete =
+        deleteCount === undefined
+          ? Math.max(0, result.length - start)
+          : deleteCount;
       deleted.push(...result.splice(start, effectiveDelete, ...items));
       return result;
     });

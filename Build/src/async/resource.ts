@@ -36,12 +36,18 @@ export function resource<T>(
 
     loader()
       .then((data) => {
-        if (!currentController.signal.aborted && abortController === currentController) {
+        if (
+          !currentController.signal.aborted &&
+          abortController === currentController
+        ) {
           value.set(data);
         }
       })
       .catch((e) => {
-        if (!currentController.signal.aborted && abortController === currentController) {
+        if (
+          !currentController.signal.aborted &&
+          abortController === currentController
+        ) {
           error.set(e instanceof Error ? e : new Error(String(e)));
         }
       })
@@ -89,12 +95,20 @@ export function resourceWithSignal<T>(
 
     loader()
       .then((data) => {
-        if (!currentController.signal.aborted && abortController === currentController && currentLoader === loader) {
+        if (
+          !currentController.signal.aborted &&
+          abortController === currentController &&
+          currentLoader === loader
+        ) {
           value.set(data);
         }
       })
       .catch((e) => {
-        if (!currentController.signal.aborted && abortController === currentController && currentLoader === loader) {
+        if (
+          !currentController.signal.aborted &&
+          abortController === currentController &&
+          currentLoader === loader
+        ) {
           error.set(e instanceof Error ? e : new Error(String(e)));
         }
       })
@@ -142,7 +156,10 @@ export interface SuspenseConfig {
 export class SuspenseBoundary {
   private id = nextResourceId();
   private loading = signal(path("suspense", this.id, "loading"), false);
-  private error: Signal<Error | null> = signal(path("suspense", this.id, "error"), null);
+  private error: Signal<Error | null> = signal(
+    path("suspense", this.id, "error"),
+    null,
+  );
   private fallback: any;
 
   constructor(config: SuspenseConfig) {

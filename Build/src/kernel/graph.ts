@@ -129,9 +129,10 @@ export function getNodesUnder(prefix: PathKey): ReactiveNode[] {
   for (const node of nodeRegistry.values()) {
     // Handle root "/" specially: all paths start with "/"
     const isExactMatch = node.path.raw === prefixStr;
-    const hasProperPrefix = prefixStr === "/"
-      ? node.path.raw.startsWith("/")
-      : node.path.raw.startsWith(prefixStr + "/");
+    const hasProperPrefix =
+      prefixStr === "/"
+        ? node.path.raw.startsWith("/")
+        : node.path.raw.startsWith(prefixStr + "/");
     if (isExactMatch || hasProperPrefix || matchesPath(prefix, node.path)) {
       result.push(node);
     }
@@ -213,20 +214,24 @@ export function trackNode(node: ReactiveNode): void {
   const computation = getGlobalActiveComputation();
   if (computation) {
     // Check for circular dependencies
-    const checked = (computation as any).__circularCheck as Set<ReactiveNode> | undefined;
+    const checked = (computation as any).__circularCheck as
+      | Set<ReactiveNode>
+      | undefined;
     if (!checked) {
       (computation as any).__circularCheck = new Set<ReactiveNode>();
     }
     const nodes = (computation as any).__circularCheck as Set<ReactiveNode>;
-    
+
     if (nodes.has(node)) {
       const logger = getSairinLogger();
       if (logger) {
-        logger.error(`Circular dependency detected: ${node.path.raw}`, { tags: ["graph", "cycle"] });
+        logger.error(`Circular dependency detected: ${node.path.raw}`, {
+          tags: ["graph", "cycle"],
+        });
       }
       return;
     }
-    
+
     nodes.add(node);
     subscribe(node, computation);
     // Remove immediately after subscription to allow re-reading the same node
@@ -344,7 +349,10 @@ export function scheduleIncrementalCleanup(
   const logger = getSairinLogger();
 
   const cleanupChunk = () => {
-    const chunk = scheduledCleanupNodes.slice(cleanupIndex, cleanupIndex + chunkSize);
+    const chunk = scheduledCleanupNodes.slice(
+      cleanupIndex,
+      cleanupIndex + chunkSize,
+    );
     for (const node of chunk) {
       node.subscribers.clear();
       if (node.kind === "derived") {
@@ -357,7 +365,10 @@ export function scheduleIncrementalCleanup(
     if (cleanupIndex < scheduledCleanupNodes.length) {
       const elapsed = Date.now() - startTime;
       if (elapsed > CLEANUP_WARN_THRESHOLD_MS && logger) {
-        logger.warn(`Incremental cleanup falling behind: ${elapsed}ms elapsed`, { tags: ["memory", "gc"] });
+        logger.warn(
+          `Incremental cleanup falling behind: ${elapsed}ms elapsed`,
+          { tags: ["memory", "gc"] },
+        );
       }
       queueMicrotask(cleanupChunk);
     } else {
@@ -375,7 +386,6 @@ export function scheduleIncrementalCleanup(
 }
 
 export function capRetainedMemory(nodes: ReactiveNode[]): void {
-  const logger = getSairinLogger();
   for (const node of nodes) {
     node.subscribers.clear();
     if (node.kind === "derived") {

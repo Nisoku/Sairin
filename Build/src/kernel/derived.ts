@@ -38,8 +38,6 @@ export class Derived<T> {
   }
 
   private recompute(): void {
-    this._node.subscribers.clear();
-
     // Unsubscribe from previous sources using the old tracker
     if (this._tracker) {
       for (const source of this._sources) {

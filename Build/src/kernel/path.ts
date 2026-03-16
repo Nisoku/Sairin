@@ -31,7 +31,7 @@ export function path(...parts: (string | number)[]): PathKey {
     } else if (str === "") {
       throw new Error("Path segment cannot be empty");
     } else {
-      if (str.includes('/')) {
+      if (str.includes("/")) {
         throw new Error("Path segment cannot contain '/'");
       }
       segments.push(str);
@@ -68,10 +68,10 @@ export function matchesPath(pattern: PathKey, target: PathKey): boolean {
     function match(pi: number, ti: number): boolean {
       // Both pattern and target consumed, success
       if (pi >= p.length && ti >= t.length) return true;
-      
+
       // Pattern exhausted but target still has segments, fail
       if (pi >= p.length) return false;
-      
+
       // Target exhausted but pattern still has non-** segments, fail
       if (ti >= t.length) {
         // Trailing ** can match empty
@@ -124,8 +124,11 @@ export function matchesPath(pattern: PathKey, target: PathKey): boolean {
 // Glob segments are stripped: parent of /user/** is /user, not /**
 export function getParentPath(p: PathKey): PathKey | null {
   const nonGlobSegments = p.segments.filter((s) => s !== "*" && s !== "**");
-  if (nonGlobSegments.length <= 1) {
+  if (nonGlobSegments.length === 0) {
     return null;
+  }
+  if (nonGlobSegments.length === 1) {
+    return path(...nonGlobSegments);
   }
   return path(...nonGlobSegments.slice(0, -1));
 }
