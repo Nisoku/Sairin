@@ -139,4 +139,4 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 # My doc i wrote to help (very rambly)
-GUIDE.md 
+GUIDE.md *.code-workspace
