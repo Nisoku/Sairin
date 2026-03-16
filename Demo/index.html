@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sairin Demo</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-theme="light">
+  <header class="header">
+    <div class="header-content">
+      <a href="../" class="logo">
+        <img src="assets/images/sairin-logo-light.svg" alt="Sairin" class="logo-light">
+        <img src="assets/images/sairin-logo-dark.svg" alt="Sairin" class="logo-dark">
+      </a>
+      <nav class="nav">
+        <a href="../docs/" class="nav-link">Documentation</a>
+        <a href="https://github.com/Nisoku/Sairin" class="nav-link" target="_blank">GitHub</a>
+        <button id="themeToggle" class="theme-toggle" title="Toggle theme">
+          <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main">
+    <aside class="sidebar">
+      <section class="panel">
+        <h2 class="panel-title">Signals</h2>
+        <p class="panel-description">Basic reactive values</p>
+        <div class="counter-display">
+          <span class="counter-label">Counter</span>
+          <span id="counterValue" class="counter-value">0</span>
+        </div>
+        <div class="button-group">
+          <button id="decrementBtn" class="btn btn-secondary">-</button>
+          <button id="incrementBtn" class="btn btn-secondary">+</button>
+          <button id="resetBtn" class="btn btn-secondary">Reset</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">Derived Values</h2>
+        <p class="panel-description">Auto-updating computations</p>
+        <div class="derived-display">
+          <div class="derived-item">
+            <span class="derived-label">Doubled</span>
+            <span id="doubledValue" class="derived-value">0</span>
+          </div>
+          <div class="derived-item">
+            <span class="derived-label">Squared</span>
+            <span id="squaredValue" class="derived-value">0</span>
+          </div>
+          <div class="derived-item">
+            <span class="derived-label">Even?</span>
+            <span id="isEvenValue" class="derived-value">true</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">Batching</h2>
+        <p class="panel-description">Group multiple updates</p>
+        <div class="button-group">
+          <button id="batchBtn" class="btn btn-primary">Update All (Batched)</button>
+        </div>
+        <div class="batch-status">
+          <span id="batchStatus">No batch updates yet</span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">Effects</h2>
+        <p class="panel-description">Side effects that track signals</p>
+        <div class="effect-log">
+          <div class="effect-log-header">
+            <span>Effect Log</span>
+            <button id="clearEffectLog" class="btn btn-small">Clear</button>
+          </div>
+          <div id="effectLogList" class="effect-log-list">
+            <div class="effect-log-placeholder">Effects will appear here...</div>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <div class="content">
+      <section class="panel metrics-panel">
+        <h2 class="panel-title">Metrics</h2>
+        <div class="metrics-grid">
+          <div class="metric">
+            <span class="metric-value" id="metricSignals">0</span>
+            <span class="metric-label">Signal Updates</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" id="metricEffects">0</span>
+            <span class="metric-label">Effect Runs</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" id="metricDerived">0</span>
+            <span class="metric-label">Derived Recomputes</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" id="metricBatches">0</span>
+            <span class="metric-label">Batch Updates</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" id="metricPending">0</span>
+            <span class="metric-label">Pending Effects</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" id="metricFlushing">no</span>
+            <span class="metric-label">Currently Flushing</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel reactive-graph-panel">
+        <h2 class="panel-title">Reactive Graph</h2>
+        <p class="panel-description">Visual representation of your reactive dependencies</p>
+        <div id="graphVisualization" class="graph-visualization">
+          <div class="graph-placeholder">Create signals to see the reactive graph</div>
+        </div>
+      </section>
+
+      <section class="panel code-panel">
+        <h2 class="panel-title">Live Code</h2>
+        <div class="code-editor">
+          <div class="code-header">
+            <span>Try it yourself</span>
+          </div>
+          <textarea id="codeInput" class="code-input" spellcheck="false" placeholder="// Try: counter.set(10)&#10;// or: counter.update(c => c * 2)"></textarea>
+          <div class="code-output">
+            <span>Output:</span>
+            <pre id="codeOutput"></pre>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>Built with <a href="https://github.com/Nisoku/Sairin">Sairin</a></p>
+  </footer>
+
+  <script type="module" src="demo.js"></script>
+</body>
+</html>

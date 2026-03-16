@@ -7,7 +7,7 @@
 **Fine-grained reactive UI framework with a virtual filesystem model**
 
 [![CI](https://github.com/Nisoku/Sairin/actions/workflows/ci.yml/badge.svg)](https://github.com/Nisoku/Sairin/actions/workflows/ci.yml)
-[![Deploy](https://github.com/Nisoku/Sairin/actions/workflows/static.yml/badge.svg)](https://github.com/Nisoku/Sairin/actions/workflows/static.yml)
+[![Deploy](https://github.com/Nisoku/Sairin/actions/workflows/pages.yml/badge.svg)](https://github.com/Nisoku/Sairin/actions/workflows/pages.yml)
 [![npm version](https://img.shields.io/npm/v/@nisoku/sairin.svg)](https://www.npmjs.com/package/@nisoku/sairin)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 

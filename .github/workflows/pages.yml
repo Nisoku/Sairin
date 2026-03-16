@@ -42,11 +42,6 @@ jobs:
           cp -r Demo/* gh-pages-root/demo/
           mkdir -p gh-pages-root/demo/dist
           cp -r Build/dist/* gh-pages-root/demo/dist/
-          # Playground (folder)
-          mkdir -p gh-pages-root/playground
-          cp Demo/playground.html gh-pages-root/playground/index.html
-          mkdir -p gh-pages-root/playground/dist
-          cp -r Build/dist/* gh-pages-root/playground/dist/
 
       - name: Deploy all assets to gh-pages
         uses: peaceiris/actions-gh-pages@v3
