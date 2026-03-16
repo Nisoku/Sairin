@@ -3,6 +3,8 @@ module.exports = {
   srcDir: 'docs',
   outputDir: 'site',
 
+  favicon: 'assets/icons/favicon.svg',
+
   search: true,
   autoTitleFromH1: true,
   copyCode: true,
@@ -42,6 +44,7 @@ module.exports = {
       icon: 'code',
       collapsible: true,
       children: [
+        { title: 'Overview', path: '/api/' },
         { title: 'Kernel', path: '/api/kernel/' },
         { title: 'Store', path: '/api/store/' },
         { title: 'Flow', path: '/api/flow/' },

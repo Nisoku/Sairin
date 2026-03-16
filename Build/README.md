@@ -11,7 +11,7 @@
 [![npm version](https://img.shields.io/npm/v/@nisoku/sairin.svg)](https://www.npmjs.com/package/@nisoku/sairin)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 
-[Documentation](https://nisoku.github.io/Sairin/docs/) | [API Reference](https://nisoku.github.io/Sairin/api/)
+[Documentation](https://nisoku.github.io/Sairin/) | [API Reference](https://nisoku.github.io/Sairin/api/)
 
 </div>
 
