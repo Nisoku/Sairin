@@ -1,4 +1,4 @@
-import { SatoriInstance } from '@nisoku/satori-log';
+import { SatoriInstance } from '@nisoku/satori';
 
 type Subscriber = () => void;
 declare function getGlobalActiveComputation(): (() => void) | null;
@@ -87,6 +87,7 @@ declare class Derived<T> {
     private _node;
     private _tracker;
     private _sources;
+    private _isComputing;
     constructor(path: PathKey, fn: () => T, options?: DerivedOptions);
     private recompute;
     get(): T;
@@ -111,11 +112,12 @@ declare function scheduleEffect(fn: EffectFn): void;
 declare function batch(fn: () => void): void;
 declare function isFlushing(): boolean;
 declare function hasPendingEffects(): boolean;
+declare function __resetBatchForTesting(): void;
 
 type LockViolationBehavior = "throw" | "warn" | "silent";
 interface SairinConfig {
     lockViolation: LockViolationBehavior;
-    satori: SatoriInstance | null;
+    satori: SatoriInstance;
 }
 declare function configureSairin(config: Partial<SairinConfig>): void;
 declare function getSairinConfig(): Readonly<SairinConfig>;
@@ -363,22 +365,23 @@ declare function registerDerived(derived: Derived<any>): void;
 declare function captureGraph(): GraphSnapshot;
 declare function clearGraph(): void;
 
-declare function bindText(el: Node, sig: Signal<string>): () => void;
-declare function bindHtml(el: Element, sig: Signal<string>): () => void;
-declare function bindAttribute(el: Element, attr: string, sig: Signal<any>): () => void;
-declare function bindProperty<T extends Element, K extends keyof T>(el: T, prop: K, sig: Signal<T[K]>): () => void;
-declare function bindClass(el: Element, sig: Signal<string>): () => void;
-declare function bindStyle(el: HTMLElement, styleProp: string, sig: Signal<string>): () => void;
+type Readable<T> = Signal<T> | Derived<T>;
+declare function bindText(el: Node, readable: Readable<string>): () => void;
+declare function bindHtml(el: Element, readable: Readable<string>): () => void;
+declare function bindAttribute(el: Element, attr: string, readable: Readable<any>): () => void;
+declare function bindProperty<T extends Element, K extends keyof T>(el: T, prop: K, readable: Readable<T[K]>): () => void;
+declare function bindClass(el: Element, readable: Readable<string>): () => void;
+declare function bindStyle(el: HTMLElement, styleProp: string, readable: Readable<string>): () => void;
 declare function bindEvent<T extends Element>(el: T, eventName: string, handler: (event: Event) => void, options?: AddEventListenerOptions): () => void;
 declare function bindInputValue(input: HTMLInputElement | HTMLTextAreaElement, sig: Signal<string>): () => void;
 declare function bindInputChecked(input: HTMLInputElement, sig: Signal<boolean>): () => void;
 declare function bindSelectValue(select: HTMLSelectElement, sig: Signal<string>): () => void;
-declare function bindVisibility(el: Element, sig: Signal<boolean>): () => void;
-declare function bindDisabled(el: Element, sig: Signal<boolean>): () => void;
+declare function bindVisibility(el: Element, readable: Readable<boolean>): () => void;
+declare function bindDisabled(el: Element, readable: Readable<boolean>): () => void;
 declare function bindElementSignal<T extends Element>(el: T, sig: Signal<T | null>, parent: Element): () => void;
 interface Binding {
     destroy: () => void;
 }
 declare function createBinding(destroyFn: () => void): Binding;
 
-export { type Binding, type CleanupFn, type Context, type CreateContextOptions, type DebugHooks, type DeferredValueOptions, Derived, type DerivedOptions, type Flow, type GraphSnapshot, type GraphSnapshotDerived, type GraphSnapshotEffect, type GraphSnapshotSignal, type LockViolationBehavior, type Parallel, type PathKey, type Pipeline, type ProviderProps, type Race, ReactiveArray, type ReactiveKind, ReactiveMap, type ReactiveNode, type ReactiveObject, type Resource, type SairinConfig, type Sequence, Signal, type Subscriber, SuspenseBoundary, type SuspenseConfig, type TransitionResult, __resetRegistryForTesting, alias, assertLock, batch, batched, bindAttribute, bindClass, bindDisabled, bindElementSignal, bindEvent, bindHtml, bindInputChecked, bindInputValue, bindProperty, bindSelectValue, bindStyle, bindText, bindVisibility, capRetainedMemory, captureGraph, checkLock, clearGraph, configureSairin, createBinding, createContext, createContextWithOptions, createEffect, createEffectSync, createList, createMap, createMemo, path as createPath, createResource, createResourceFromSignal, createSignal, createStore, deferValue, deferred, deleteNode, derived, disableDebug, effect, effectIdle, effectSync, enableDebug, flow, generateId, generateUniqueId, getAllNodes, getDebugHooks, getGlobalActiveComputation, getIsTransition, getNode, getNodesUnder, getOrCreateNode, getParentPath, getSairinConfig, hasNode, hasPendingEffects, isAlias, isFlushing, isLocked, isPathKey, isReactive, isSignal, joinPath, lock, matchesPath, notifyDerivedInvalidated, notifyEffectCreated, notifyEffectRun, notifySignalCreated, notifySignalRead, notifySignalWritten, notifySubscribers, onCleanup, onDispose, parallel, path, pipeline, race, reactive, reactiveArray, reactiveMap, registerDerived, registerEffect, registerSignal, resolveAlias, resource, resourceWithSignal, scheduleEffect, scheduleIncrementalCleanup, sequence, setGlobalActiveComputation, setReactive, signal, startTransition, subscribe, toRaw, trackDependency, trackNode, unalias, unlock, unsubscribe, untrack, untracked, updateStore, useContext, useContextProvider, useDeferred, useDeferredValue, useTransition, useTransitionResult, watch };
+export { type Binding, type CleanupFn, type Context, type CreateContextOptions, type DebugHooks, type DeferredValueOptions, Derived, type DerivedOptions, type Flow, type GraphSnapshot, type GraphSnapshotDerived, type GraphSnapshotEffect, type GraphSnapshotSignal, type LockViolationBehavior, type Parallel, type PathKey, type Pipeline, type ProviderProps, type Race, ReactiveArray, type ReactiveKind, ReactiveMap, type ReactiveNode, type ReactiveObject, type Readable, type Resource, type SairinConfig, type Sequence, Signal, type Subscriber, SuspenseBoundary, type SuspenseConfig, type TransitionResult, __resetBatchForTesting, __resetRegistryForTesting, alias, assertLock, batch, batched, bindAttribute, bindClass, bindDisabled, bindElementSignal, bindEvent, bindHtml, bindInputChecked, bindInputValue, bindProperty, bindSelectValue, bindStyle, bindText, bindVisibility, capRetainedMemory, captureGraph, checkLock, clearGraph, configureSairin, createBinding, createContext, createContextWithOptions, createEffect, createEffectSync, createList, createMap, createMemo, path as createPath, createResource, createResourceFromSignal, createSignal, createStore, deferValue, deferred, deleteNode, derived, disableDebug, effect, effectIdle, effectSync, enableDebug, flow, generateId, generateUniqueId, getAllNodes, getDebugHooks, getGlobalActiveComputation, getIsTransition, getNode, getNodesUnder, getOrCreateNode, getParentPath, getSairinConfig, hasNode, hasPendingEffects, isAlias, isFlushing, isLocked, isPathKey, isReactive, isSignal, joinPath, lock, matchesPath, notifyDerivedInvalidated, notifyEffectCreated, notifyEffectRun, notifySignalCreated, notifySignalRead, notifySignalWritten, notifySubscribers, onCleanup, onDispose, parallel, path, pipeline, race, reactive, reactiveArray, reactiveMap, registerDerived, registerEffect, registerSignal, resolveAlias, resource, resourceWithSignal, scheduleEffect, scheduleIncrementalCleanup, sequence, setGlobalActiveComputation, setReactive, signal, startTransition, subscribe, toRaw, trackDependency, trackNode, unalias, unlock, unsubscribe, untrack, untracked, updateStore, useContext, useContextProvider, useDeferred, useDeferredValue, useTransition, useTransitionResult, watch };
