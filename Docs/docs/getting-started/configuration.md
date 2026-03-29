@@ -18,10 +18,10 @@ configureSairin({
 
 ## Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `lockViolation` | `"throw"` / `"warn"` / `"silent"` | `"throw"` | What to do when a lock is violated |
-| `satori` | `SatoriInstance` | undefined | Satori instance for structured logging |
+| Option          | Type                              | Default   | Description                            |
+|-----------------|-----------------------------------|-----------|----------------------------------------|
+| `lockViolation` | `"throw"` / `"warn"` / `"silent"` | `"throw"` | What to do when a lock is violated     |
+| `satori`        | `SatoriInstance`                  | undefined | Satori instance for structured logging |
 
 ## Lock Violation Behavior
 
@@ -73,9 +73,9 @@ configureSairin({
 
 All Sairin errors route through Satori with tags:
 
-| Event | Level | Tags |
-|-------|-------|------|
-| Lock violation | error / warn | lock, write |
-| Effect threw | error | effect, runtime |
-| Circular dependency | error | graph, cycle |
-| Cleanup falling behind | warn | memory, gc |
+| Event                  | Level        | Tags            |
+|------------------------|--------------|-----------------|
+| Lock violation         | error / warn | lock, write     |
+| Effect threw           | error        | effect, runtime |
+| Circular dependency    | error        | graph, cycle    |
+| Cleanup falling behind | warn         | memory, gc      |

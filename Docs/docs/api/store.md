@@ -18,14 +18,14 @@ const map = new ReactiveMap([["a", 1], ["b", 2]]);
 
 ### Methods
 
-| Method | Description |
-|--------|-------------|
-| `get(key)` | Get value |
-| `set(key, value)` | Set value |
-| `has(key)` | Check if key exists |
-| `delete(key)` | Delete key |
-| `clear()` | Clear all |
-| `size` | Get count |
+| Method            | Description         |
+|-------------------|---------------------|
+| `get(key)`        | Get value           |
+| `set(key, value)` | Set value           |
+| `has(key)`        | Check if key exists |
+| `delete(key)`     | Delete key          |
+| `clear()`         | Clear all           |
+| `size`            | Get count           |
 
 ### Iteration
 
@@ -48,16 +48,16 @@ const arr = reactiveArray([1, 2, 3]);
 
 ### Methods
 
-| Method | Description |
-|--------|-------------|
-| `get(index)` | Get value at index |
-| `set(index, value)` | Set value |
-| `push(...values)` | Add to end |
-| `pop()` | Remove from end |
-| `shift()` | Remove from start |
-| `unshift(...values)` | Add to start |
-| `splice(start, deleteCount, ...items)` | Insert/delete |
-| `length` | Get count |
+| Method                                 | Description        |
+|----------------------------------------|--------------------|
+| `get(index)`                           | Get value at index |
+| `set(index, value)`                    | Set value          |
+| `push(...values)`                      | Add to end         |
+| `pop()`                                | Remove from end    |
+| `shift()`                              | Remove from start  |
+| `unshift(...values)`                   | Add to start       |
+| `splice(start, deleteCount, ...items)` | Insert/delete      |
+| `length`                               | Get count          |
 
 ## ReactiveObject
 
@@ -86,7 +86,7 @@ toRaw(state);       // { user: { name: "Bob" }, count: 5 }
 
 ### Methods
 
-| Method | Description |
-|--------|-------------|
-| `isReactive(value)` | Check if reactive |
-| `toRaw(obj)` | Get underlying object |
+| Method              | Description           |
+|---------------------|-----------------------|
+| `isReactive(value)` | Check if reactive     |
+| `toRaw(obj)`        | Get underlying object |

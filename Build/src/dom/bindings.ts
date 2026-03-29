@@ -1,9 +1,12 @@
 import { Signal } from "../kernel/signal";
+import { Derived } from "../kernel/derived";
 import { effect, onCleanup } from "../kernel/effect";
 
-export function bindText(el: Node, sig: Signal<string>): () => void {
+export type Readable<T> = Signal<T> | Derived<T>;
+
+export function bindText(el: Node, readable: Readable<string>): () => void {
   const update = () => {
-    const value = sig.get();
+    const value = readable.get();
     if (el.textContent !== value) {
       el.textContent = value;
     }
@@ -14,9 +17,9 @@ export function bindText(el: Node, sig: Signal<string>): () => void {
   });
 }
 
-export function bindHtml(el: Element, sig: Signal<string>): () => void {
+export function bindHtml(el: Element, readable: Readable<string>): () => void {
   return effect(() => {
-    const value = sig.get();
+    const value = readable.get();
     if (el.innerHTML !== value) {
       el.innerHTML = value;
     }
@@ -26,10 +29,10 @@ export function bindHtml(el: Element, sig: Signal<string>): () => void {
 export function bindAttribute(
   el: Element,
   attr: string,
-  sig: Signal<any>,
+  readable: Readable<any>,
 ): () => void {
   return effect(() => {
-    const value = sig.get();
+    const value = readable.get();
     if (value == null) {
       el.removeAttribute(attr);
     } else {
@@ -41,19 +44,19 @@ export function bindAttribute(
 export function bindProperty<T extends Element, K extends keyof T>(
   el: T,
   prop: K,
-  sig: Signal<T[K]>,
+  readable: Readable<T[K]>,
 ): () => void {
   return effect(() => {
-    const value = sig.get();
+    const value = readable.get();
     if ((el as any)[prop] !== value) {
       (el as any)[prop] = value;
     }
   });
 }
 
-export function bindClass(el: Element, sig: Signal<string>): () => void {
+export function bindClass(el: Element, readable: Readable<string>): () => void {
   return effect(() => {
-    const value = sig.get();
+    const value = readable.get();
     el.className = value;
   });
 }
@@ -61,10 +64,10 @@ export function bindClass(el: Element, sig: Signal<string>): () => void {
 export function bindStyle(
   el: HTMLElement,
   styleProp: string,
-  sig: Signal<string>,
+  readable: Readable<string>,
 ): () => void {
   return effect(() => {
-    const value = sig.get();
+    const value = readable.get();
     (el.style as any)[styleProp] = value;
   });
 }
@@ -148,9 +151,9 @@ export function bindSelectValue(
   };
 }
 
-export function bindVisibility(el: Element, sig: Signal<boolean>): () => void {
+export function bindVisibility(el: Element, readable: Readable<boolean>): () => void {
   return effect(() => {
-    const visible = sig.get();
+    const visible = readable.get();
     if (visible) {
       el.removeAttribute("hidden");
     } else {
@@ -159,9 +162,9 @@ export function bindVisibility(el: Element, sig: Signal<boolean>): () => void {
   });
 }
 
-export function bindDisabled(el: Element, sig: Signal<boolean>): () => void {
+export function bindDisabled(el: Element, readable: Readable<boolean>): () => void {
   return effect(() => {
-    const disabled = sig.get();
+    const disabled = readable.get();
     if (disabled) {
       el.setAttribute("disabled", "");
     } else {

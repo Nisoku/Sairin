@@ -154,7 +154,10 @@ export function unsubscribe(node: ReactiveNode, fn: Subscriber): void {
 
 export function notifySubscribers(node: ReactiveNode): void {
   node.version++;
+  const called = new Set<Function>();
   for (const fn of node.subscribers) {
+    if (called.has(fn)) continue;
+    called.add(fn);
     fn();
   }
 }
@@ -224,11 +227,9 @@ export function trackNode(node: ReactiveNode): void {
 
     if (nodes.has(node)) {
       const logger = getSairinLogger();
-      if (logger) {
-        logger.error(`Circular dependency detected: ${node.path.raw}`, {
-          tags: ["graph", "cycle"],
-        });
-      }
+      logger.error(`Circular dependency detected: ${node.path.raw}`, {
+        tags: ["graph", "cycle"],
+      });
       return;
     }
 
@@ -302,16 +303,10 @@ function handleLockViolation(
   const logger = getSairinLogger();
   const message = `Lock violation: cannot write to "${path.raw}", owned by different scope${attemptedOwner ? ` (attempted by: ${attemptedOwner})` : ""}`;
 
-  if (logger) {
-    if (config.lockViolation === "throw" || config.lockViolation === "warn") {
-      logger.error(message, { tags: ["lock", "write"] });
-    } else if (config.lockViolation === "silent") {
-      logger.debug(message, { tags: ["lock", "write"] });
-    }
-  } else if (config.lockViolation === "throw") {
-    console.error(message);
-  } else if (config.lockViolation === "warn") {
-    console.warn(message);
+  if (config.lockViolation === "throw" || config.lockViolation === "warn") {
+    logger.error(message, { tags: ["lock", "write"] });
+  } else if (config.lockViolation === "silent") {
+    logger.debug(message, { tags: ["lock", "write"] });
   }
 
   if (config.lockViolation === "throw") {
@@ -364,7 +359,7 @@ export function scheduleIncrementalCleanup(
 
     if (cleanupIndex < scheduledCleanupNodes.length) {
       const elapsed = Date.now() - startTime;
-      if (elapsed > CLEANUP_WARN_THRESHOLD_MS && logger) {
+      if (elapsed > CLEANUP_WARN_THRESHOLD_MS) {
         logger.warn(
           `Incremental cleanup falling behind: ${elapsed}ms elapsed`,
           { tags: ["memory", "gc"] },

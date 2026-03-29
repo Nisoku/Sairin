@@ -28,10 +28,10 @@ console.log(p.raw);       // "/user/profile/name"
 
 ## Glob Patterns
 
-| Pattern | Matches | Example |
-|---------|---------|---------|
-| `*` | Single segment | `/user/*` matches `/user/name` but not `/user/profile/name` |
-| `**` | Zero or more segments | `/user/**` matches `/user`, `/user/name`, `/user/profile/name` |
+| Pattern | Matches               | Example                                                        |
+|---------|-----------------------|----------------------------------------------------------------|
+| `*`     | Single segment        | `/user/*` matches `/user/name` but not `/user/profile/name`    |
+| `**`    | Zero or more segments | `/user/**` matches `/user`, `/user/name`, `/user/profile/name` |
 
 ## Watching Paths
 

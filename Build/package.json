@@ -1,9 +1,9 @@
 {
   "name": "@nisoku/sairin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Sairin, the modern, powerful, and compact reactive engine.",
   "license": "Apache-2.0",
-  "main": "dist/index.cjs",
+  "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "sideEffects": false,
@@ -15,7 +15,7 @@
       },
       "require": {
         "types": "./dist/index.d.ts",
-        "default": "./dist/index.cjs"
+        "default": "./dist/index.js"
       }
     }
   },
@@ -50,6 +50,6 @@
     "typescript": "^5.3.0"
   },
   "dependencies": {
-    "@nisoku/satori-log": "^0.1.2"
+    "@nisoku/satori": "^0.1.3"
   }
 }

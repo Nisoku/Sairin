@@ -7,5 +7,6 @@ export default defineConfig({
   splitting: false,
   sourcemap: true,
   clean: true,
-  external: ['@nisoku/sazami', '@nisoku/satori-log'],
+  external: ['@nisoku/sazami'],
+  noExternal: ['@nisoku/satori'],
 });

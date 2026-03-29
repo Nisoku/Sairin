@@ -64,13 +64,13 @@ console.log(doubled.peek());  // 0
 
 ## Derived API
 
-| Method | Description |
-|--------|-------------|
-| `get()` | Get value (recomputes if dirty) |
-| `subscribe(fn)` | Subscribe to changes |
-| `isDirty()` | Check if needs recompute |
-| `peek()` | Get cached value without subscribing |
-| `version` | Get version number |
+| Method          | Description                          |
+|-----------------|--------------------------------------|
+| `get()`         | Get value (recomputes if dirty)      |
+| `subscribe(fn)` | Subscribe to changes                 |
+| `isDirty()`     | Check if needs recompute             |
+| `peek()`        | Get cached value without subscribing |
+| `version`       | Get version number                   |
 
 ## Staleness Detection
 

@@ -52,7 +52,7 @@ batch(() => {
 
 When many signals update in the same tick, Sairin handles it:
 
-```
+```txt
 tick:
   signal A .set()  -> dirty, enqueue flush
   signal B .set()  -> dirty, flush already queued -> drop

@@ -10,12 +10,12 @@ Sairin provides a comprehensive API for building reactive applications.
 
 The API is organized into several modules:
 
-| Module | Description |
-|--------|-------------|
+| Module           | Description                                       |
+|------------------|---------------------------------------------------|
 | [Kernel](kernel) | Core reactivity: signals, effects, derived, batch |
-| [Store](store) | Reactive data structures |
-| [Flow](flow) | Async flow control utilities |
-| [Async](async) | Async patterns |
+| [Store](store)   | Reactive data structures                          |
+| [Flow](flow)     | Async flow control utilities                      |
+| [Async](async)   | Async patterns                                    |
 
 ## Quick Reference
 

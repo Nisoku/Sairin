@@ -25,11 +25,11 @@ count.set(2);  // Logs: "Count is: 2"
 
 Sairin has three scheduling tiers:
 
-| Tier | API | When it Runs | Use Case |
-|------|-----|-------------|----------|
-| Sync | `effectSync()` | Immediately | Critical path |
-| Micro | `effect()` | Next microtask | Default - DOM updates |
-| Idle | `effectIdle()` | `requestIdleCallback` | Analytics, logging |
+| Tier  | API            | When it Runs          | Use Case              |
+|-------|----------------|-----------------------|-----------------------|
+| Sync  | `effectSync()` | Immediately           | Critical path         |
+| Micro | `effect()`     | Next microtask        | Default - DOM updates |
+| Idle  | `effectIdle()` | `requestIdleCallback` | Analytics, logging    |
 
 ```typescript
 import { effect, effectSync, effectIdle } from 'sairin';
@@ -95,7 +95,7 @@ count.set(2);  // Logs: "Count: 2"
 
 dispose();  // Effect is removed
 
-count.set(3);  // Nothing - effect is gone
+count.set(3);  // Nothing, effect is gone
 ```
 
 ## Untracked Reads

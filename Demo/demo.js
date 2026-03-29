@@ -1,13 +1,15 @@
 /**
  * Sairin Demo
  * Interactive demonstration of Sairin reactive framework features
+ * 
+ * Sairin now automatically creates a Satori instance for logging!
  */
 
-import { signal, effect, derived, batch, path, isFlushing, hasPendingEffects, configureSairin } from './dist/index.mjs';
+import { signal, effect, derived, batch, path, isFlushing, hasPendingEffects, configureSairin, lock, unlock, isLocked } from './dist/index.mjs';
 
 // Configure Sairin
 configureSairin({
-  lockViolation: "warn",
+  lockViolation: "warn",  // Warn on lock violations (don't throw)
 });
 
 // Global state
@@ -240,6 +242,9 @@ function executeCode() {
       derived,
       batch,
       path,
+      lock: (path, opts) => lock(path, opts || { owner: 'demo' }),
+      unlock,
+      isLocked,
     };
     
     // Execute the code
@@ -249,7 +254,7 @@ function executeCode() {
     if (result !== undefined) {
       elements.codeOutput.textContent = String(result);
     } else {
-      elements.codeOutput.textContent = '(executed successfully)';
+      elements.codeOutput.textContent = '(executed successfully - check console for logs)';
     }
   } catch (error) {
     elements.codeOutput.textContent = `Error: ${error.message}`;

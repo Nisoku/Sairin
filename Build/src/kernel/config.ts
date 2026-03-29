@@ -1,15 +1,15 @@
-import type { SatoriInstance, SatoriLogger } from "@nisoku/satori-log";
+import { createSatori, type SatoriInstance, type SatoriLogger } from "@nisoku/satori";
 
 export type LockViolationBehavior = "throw" | "warn" | "silent";
 
 export interface SairinConfig {
   lockViolation: LockViolationBehavior;
-  satori: SatoriInstance | null;
+  satori: SatoriInstance;
 }
 
 let currentConfig: SairinConfig = {
   lockViolation: "throw",
-  satori: null,
+  satori: createSatori({ logLevel: "debug" }),
 };
 
 export function configureSairin(config: Partial<SairinConfig>): void {
@@ -25,9 +25,6 @@ export function getSairinConfig(): Readonly<SairinConfig> {
   return currentConfig;
 }
 
-export function getSairinLogger(): SatoriLogger | null {
-  if (!currentConfig.satori) {
-    return null;
-  }
+export function getSairinLogger(): SatoriLogger {
   return currentConfig.satori.createLogger("sairin");
 }

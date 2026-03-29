@@ -56,11 +56,9 @@ function createEffect(fn: () => CleanupFn, schedule: ScheduleFn): () => void {
       cleanupFn = fn();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      if (logger) {
-        logger.error(`Effect threw: ${message}`, {
-          tags: ["effect", "runtime"],
-        });
-      }
+      logger.error(`Effect threw: ${message}`, {
+        tags: ["effect", "runtime"],
+      });
     } finally {
       setGlobalActiveComputation(prev);
       currentEffect = prevEffect;

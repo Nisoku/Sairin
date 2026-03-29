@@ -25,6 +25,7 @@ export class Derived<T> {
   private _node: DerivedNode<T>;
   private _tracker: (() => void) | null = null;
   private _sources: Set<ReactiveNode> = new Set();
+  private _isComputing = false;
 
   constructor(path: PathKey, fn: () => T, options: DerivedOptions = {}) {
     this.id = parseInt(generateUniqueId(), 36);
@@ -46,10 +47,19 @@ export class Derived<T> {
     }
     this._sources.clear();
 
+    this._isComputing = true;
+    let trackerInitialized = false;
+    const trackedVersions = new Map<ReactiveNode, number>();
     const tracker = () => {
-      if (!this._node.dirty) {
-        this._node.dirty = true;
-        notifySubscribers(this._node);
+      if (this._isComputing || !trackerInitialized) return;
+      for (const [source, prevVersion] of trackedVersions) {
+        if (source.version !== prevVersion) {
+          if (!this._node.dirty) {
+            this._node.dirty = true;
+            notifySubscribers(this._node);
+          }
+          return;
+        }
       }
     };
 
@@ -63,12 +73,20 @@ export class Derived<T> {
       this._node.cached = this._node.compute();
       this._node.dirty = false;
     } finally {
-      // Collect the sources that were tracked
+      // Collect the sources that were tracked and capture their versions
       const nodes = getAllNodes();
+      const newSources: ReactiveNode[] = [];
       for (const node of nodes) {
         if (node.subscribers.has(tracker)) {
-          this._sources.add(node);
+          newSources.push(node);
+          trackedVersions.set(node, node.version);
         }
+      }
+      trackerInitialized = true;
+      this._isComputing = false;
+      // Now add to _sources
+      for (const node of newSources) {
+        this._sources.add(node);
       }
       setGlobalActiveComputation(prevComputation);
     }

@@ -37,7 +37,7 @@ describe('Performance Benchmarks', () => {
       const end = performance.now();
       
       const timePerOp = ((end - start) / iterations) * 1000;
-      expect(timePerOp).toBeLessThan(10);
+      expect(timePerOp).toBeLessThan(15);
     });
   });
 

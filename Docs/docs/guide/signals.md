@@ -19,7 +19,7 @@ const count = signal(path("counter", "value"), 0);
 ```typescript
 count.get();    // Read
 count.set(5);   // Write
-count.set(5);   // No-op - same value
+count.set(5);   // No-op: same value
 count.update(c => c + 1);  // Update from current
 ```
 
@@ -38,15 +38,15 @@ count.update(c => c + 1);  // Update from current
 
 ## Signal API
 
-| Method | Description |
-|--------|-------------|
-| `get()` | Read the current value |
-| `set(value)` | Set a new value |
-| `update(fn)` | Update using current value |
-| `subscribe(fn)` | Subscribe to changes |
-| `unsubscribe(fn)` | Unsubscribe |
-| `peek()` | Read without subscribing |
-| `version` | Get the version number |
+| Method            | Description                |
+|-------------------|----------------------------|
+| `get()`           | Read the current value     |
+| `set(value)`      | Set a new value            |
+| `update(fn)`      | Update using current value |
+| `subscribe(fn)`   | Subscribe to changes       |
+| `unsubscribe(fn)` | Unsubscribe                |
+| `peek()`          | Read without subscribing   |
+| `version`         | Get the version number     |
 
 ## Subscriptions
 
