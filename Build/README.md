@@ -85,6 +85,10 @@ Sairin is available on [NPM](https://www.npmjs.com/package/@nisoku/sairin)!
 | [Locks](https://nisoku.github.io/Sairin/guide/locks) | Preventing unauthorized writes |
 | [API Reference](https://nisoku.github.io/Sairin/api/) | Complete API documentation |
 
+## Used By
+
+- **[Sakko](https://nisoku.github.io/Sakko/)** - A DSL compiler that uses Sairin for reactive state in compiled components
+
 ## Project Structure
 
 ```txt

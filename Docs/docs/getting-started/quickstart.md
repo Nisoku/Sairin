@@ -91,9 +91,31 @@ batch(() => {
 // Effect only runs once, logs: "10 20"
 ```
 
+## DOM Bindings
+
+Sairin includes bindings for reactive DOM updates:
+
+```typescript
+import { signal, bindText, bindEvent, path } from 'sairin';
+
+const name = signal(path("user", "name"), "World");
+
+// Bind text content
+const cleanup = bindText(document.querySelector('#greeting'), name);
+
+// Update the signal
+name.set("Universe");  // Element updates automatically
+
+// Clean up when done
+cleanup();
+```
+
+See the [DOM Bindings API](../api/dom) for all available bindings.
+
 ## What's Next
 
 - [Path System](../guide/path-system) - understand paths, globs, and aliases
 - [Signals](../guide/signals) - deep dive into signals
 - [Effects](../guide/effects) - scheduling tiers and cleanup
+- [DOM Bindings](../api/dom) - reactive DOM updates
 - [Configuration](../getting-started/configuration) - lock behavior and logging

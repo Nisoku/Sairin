@@ -16,6 +16,7 @@ The API is organized into several modules:
 | [Store](store)   | Reactive data structures                          |
 | [Flow](flow)     | Async flow control utilities                      |
 | [Async](async)   | Async patterns                                    |
+| [DOM](dom)       | DOM bindings for reactive UI                       |
 
 ## Quick Reference
 
