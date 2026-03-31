@@ -118,4 +118,6 @@ See the [DOM Bindings API](../api/dom) for all available bindings.
 - [Signals](../guide/signals) - deep dive into signals
 - [Effects](../guide/effects) - scheduling tiers and cleanup
 - [DOM Bindings](../api/dom) - reactive DOM updates
+- [Context](../api/context) - pass values through component trees
+- [Debug](../api/debug) - inspect and debug the reactive graph
 - [Configuration](../getting-started/configuration) - lock behavior and logging

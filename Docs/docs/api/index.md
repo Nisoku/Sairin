@@ -17,6 +17,8 @@ The API is organized into several modules:
 | [Flow](flow)     | Async flow control utilities                      |
 | [Async](async)   | Async patterns                                    |
 | [DOM](dom)       | DOM bindings for reactive UI                       |
+| [Context](context) | Context system for dependency injection            |
+| [Debug](debug)   | Debugging and graph inspection                     |
 
 ## Quick Reference
 
