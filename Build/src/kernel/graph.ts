@@ -303,8 +303,10 @@ function handleLockViolation(
   const logger = getSairinLogger();
   const message = `Lock violation: cannot write to "${path.raw}", owned by different scope${attemptedOwner ? ` (attempted by: ${attemptedOwner})` : ""}`;
 
-  if (config.lockViolation === "throw" || config.lockViolation === "warn") {
+  if (config.lockViolation === "throw") {
     logger.error(message, { tags: ["lock", "write"] });
+  } else if (config.lockViolation === "warn") {
+    logger.warn(message, { tags: ["lock", "write"] });
   } else if (config.lockViolation === "silent") {
     logger.debug(message, { tags: ["lock", "write"] });
   }
@@ -321,7 +323,9 @@ export function assertLock(
 ): boolean {
   if (!checkLock(path, owner)) {
     handleLockViolation(path, owner, attemptedOwner);
-    return false;
+    // Allow the write for 'warn' mode, block for 'throw' and 'silent'
+    const config = getSairinConfig();
+    return config.lockViolation === "warn";
   }
   return true;
 }

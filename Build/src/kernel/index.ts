@@ -14,7 +14,13 @@ export {
   untracked,
   type CleanupFn,
 } from "./effect";
-export { batch, scheduleEffect, isFlushing, hasPendingEffects, __resetBatchForTesting } from "./batch";
+export {
+  batch,
+  scheduleEffect,
+  isFlushing,
+  hasPendingEffects,
+  __resetBatchForTesting,
+} from "./batch";
 export {
   trackDependency,
   generateId,

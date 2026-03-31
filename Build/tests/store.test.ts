@@ -1,3 +1,4 @@
+import { describe, test, expect, jest } from '@jest/globals';
 import { ReactiveArray, reactiveArray, ReactiveMap, reactiveMap, reactive, isReactive, toRaw, setReactive } from '../src/store';
 
 describe('ReactiveArray', () => {

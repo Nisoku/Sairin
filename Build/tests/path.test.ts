@@ -1,3 +1,4 @@
+import { describe, test, expect } from '@jest/globals';
 import { path, matchesPath, isPathKey, getParentPath, joinPath } from '../src/kernel';
 
 describe('path', () => {

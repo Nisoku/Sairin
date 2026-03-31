@@ -151,7 +151,10 @@ export function bindSelectValue(
   };
 }
 
-export function bindVisibility(el: Element, readable: Readable<boolean>): () => void {
+export function bindVisibility(
+  el: Element,
+  readable: Readable<boolean>,
+): () => void {
   return effect(() => {
     const visible = readable.get();
     if (visible) {
@@ -162,7 +165,10 @@ export function bindVisibility(el: Element, readable: Readable<boolean>): () => 
   });
 }
 
-export function bindDisabled(el: Element, readable: Readable<boolean>): () => void {
+export function bindDisabled(
+  el: Element,
+  readable: Readable<boolean>,
+): () => void {
   return effect(() => {
     const disabled = readable.get();
     if (disabled) {

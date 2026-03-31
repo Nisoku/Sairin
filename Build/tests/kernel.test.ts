@@ -1,3 +1,4 @@
+import { describe, test, expect, jest, beforeEach } from '@jest/globals';
 import { Signal, signal, derived, effect, effectSync, batch, onCleanup, untracked, path } from '../src/kernel';
 import { __resetRegistryForTesting } from '../src/kernel/graph';
 
