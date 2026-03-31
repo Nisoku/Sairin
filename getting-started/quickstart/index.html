@@ -395,11 +395,28 @@ count.<span class="hljs-title function_">set</span>(<span class="hljs-number">1<
 
 <span class="hljs-comment">// Effect only runs once, logs: &quot;10 20&quot;</span>
 </code></pre>
+<h2 id="dom-bindings">DOM Bindings</h2>
+<p>Sairin includes bindings for reactive DOM updates:</p>
+<pre class="hljs"><code><span class="hljs-keyword">import</span> { signal, bindText, bindEvent, path } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;sairin&#x27;</span>;
+
+<span class="hljs-keyword">const</span> name = <span class="hljs-title function_">signal</span>(<span class="hljs-title function_">path</span>(<span class="hljs-string">&quot;user&quot;</span>, <span class="hljs-string">&quot;name&quot;</span>), <span class="hljs-string">&quot;World&quot;</span>);
+
+<span class="hljs-comment">// Bind text content</span>
+<span class="hljs-keyword">const</span> cleanup = <span class="hljs-title function_">bindText</span>(<span class="hljs-variable language_">document</span>.<span class="hljs-title function_">querySelector</span>(<span class="hljs-string">&#x27;#greeting&#x27;</span>), name);
+
+<span class="hljs-comment">// Update the signal</span>
+name.<span class="hljs-title function_">set</span>(<span class="hljs-string">&quot;Universe&quot;</span>);  <span class="hljs-comment">// Element updates automatically</span>
+
+<span class="hljs-comment">// Clean up when done</span>
+<span class="hljs-title function_">cleanup</span>();
+</code></pre>
+<p>See the <a href="../api/dom">DOM Bindings API</a> for all available bindings.</p>
 <h2 id="whats-next">What’s Next</h2>
 <ul>
 <li><a href="../guide/path-system">Path System</a> - understand paths, globs, and aliases</li>
 <li><a href="../guide/signals">Signals</a> - deep dive into signals</li>
 <li><a href="../guide/effects">Effects</a> - scheduling tiers and cleanup</li>
+<li><a href="../api/dom">DOM Bindings</a> - reactive DOM updates</li>
 <li><a href="../getting-started/configuration">Configuration</a> - lock behavior and logging</li>
 </ul>
 
@@ -461,6 +478,10 @@ count.<span class="hljs-title function_">set</span>(<span class="hljs-number">1<
       
         <li class="toc-item toc-level-2">
           <a href="#batching" class="toc-link">Batching</a>
+        </li>
+      
+        <li class="toc-item toc-level-2">
+          <a href="#dom-bindings" class="toc-link">DOM Bindings</a>
         </li>
       
         <li class="toc-item toc-level-2">
