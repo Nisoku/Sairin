@@ -1843,8 +1843,10 @@ function handleLockViolation(path3, owner, attemptedOwner) {
   const config = getSairinConfig();
   const logger = getSairinLogger();
   const message = `Lock violation: cannot write to "${path3.raw}", owned by different scope${attemptedOwner ? ` (attempted by: ${attemptedOwner})` : ""}`;
-  if (config.lockViolation === "throw" || config.lockViolation === "warn") {
+  if (config.lockViolation === "throw") {
     logger.error(message, { tags: ["lock", "write"] });
+  } else if (config.lockViolation === "warn") {
+    logger.warn(message, { tags: ["lock", "write"] });
   } else if (config.lockViolation === "silent") {
     logger.debug(message, { tags: ["lock", "write"] });
   }
@@ -1855,7 +1857,8 @@ function handleLockViolation(path3, owner, attemptedOwner) {
 function assertLock(path3, owner, attemptedOwner) {
   if (!checkLock(path3, owner)) {
     handleLockViolation(path3, owner, attemptedOwner);
-    return false;
+    const config = getSairinConfig();
+    return config.lockViolation === "warn";
   }
   return true;
 }
