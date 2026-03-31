@@ -7,9 +7,9 @@
 
     
 
-    <title>Quick Start : Sairin</title>
+    <title>Context API : Sairin</title>
     
-    <meta name="description" content="Get started with Sairin in minutes">
+    <meta name="description" content="Context system for Sairin">
     
 
     <link rel="icon" href="../../assets/icons/favicon.svg" type="image/x-icon" sizes="any">
@@ -110,7 +110,7 @@
       
     </li>
     
-    <li class="active-parent collapsible" data-nav-id="undefined" aria-expanded="true">
+    <li class="collapsible" data-nav-id="undefined" aria-expanded="false">
       <a href="#" class="" >
          <svg class="lucide-icon icon-rocket" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
@@ -125,10 +125,10 @@
         
       </a>
       
-        <ul class="submenu" style="display: block;">
+        <ul class="submenu" style="display: none;">
           
-    <li class="active">
-      <a href="../../getting-started/quickstart/" class="active" >
+    <li class="">
+      <a href="../../getting-started/quickstart/" class="" >
         
         <span class="nav-item-title">Quick Start</span>
         
@@ -324,7 +324,7 @@
         <div class="page-header">
             <div class="header-left">
                 
-                <h1>Quick Start</h1>
+                <h1>Context API</h1>
             </div>
             
         </div>
@@ -332,118 +332,102 @@
         <main class="content-area">
             <div class="content-layout">
                 <div class="main-content">
-                    <p>This guide will get you up and running with Sairin in a few minutes.</p>
-<h2 id="installation">Installation</h2>
-<pre class="hljs"><code>npm install @nisoku/sairin
+                    <p>Context provides a way to pass values through the component tree without prop drilling.</p>
+<h2 id="overview">Overview</h2>
+<p>Sairin’s context system uses a stack-based approach, allowing for nested providers with automatic cleanup.</p>
+<pre class="hljs"><code><span class="hljs-keyword">import</span> { createContext, useContext } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;sairin&#x27;</span>;
 </code></pre>
-<h2 id="your-first-signal">Your First Signal</h2>
-<p>A signal holds a value. When the value changes, everything that depends on it updates.</p>
-<pre class="hljs"><code><span class="hljs-keyword">import</span> { signal, path } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;sairin&#x27;</span>;
-
-<span class="hljs-keyword">const</span> name = <span class="hljs-title function_">signal</span>(<span class="hljs-title function_">path</span>(<span class="hljs-string">&quot;user&quot;</span>, <span class="hljs-string">&quot;name&quot;</span>), <span class="hljs-string">&quot;Alice&quot;</span>);
-<span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(name.<span class="hljs-title function_">get</span>());  <span class="hljs-comment">// &quot;Alice&quot;</span>
-
-name.<span class="hljs-title function_">set</span>(<span class="hljs-string">&quot;Bob&quot;</span>);
-<span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(name.<span class="hljs-title function_">get</span>());  <span class="hljs-comment">// &quot;Bob&quot;</span>
+<hr>
+<h2 id="createcontext">createContext</h2>
+<p>Create a new context with a default value.</p>
+<pre class="hljs"><code><span class="hljs-keyword">function</span> createContext&lt;T&gt;(<span class="hljs-attr">defaultValue</span>: T, <span class="hljs-attr">name</span>?: <span class="hljs-built_in">string</span>): <span class="hljs-title class_">Context</span>&lt;T&gt;
 </code></pre>
-<h2 id="paths">Paths</h2>
-<p>Every signal lives at a path. Paths are structured like a filesystem:</p>
-<pre class="hljs"><code><span class="hljs-keyword">const</span> userPath = <span class="hljs-title function_">path</span>(<span class="hljs-string">&quot;user&quot;</span>, <span class="hljs-string">&quot;name&quot;</span>);      <span class="hljs-comment">// -&gt; &quot;/user/name&quot;</span>
-<span class="hljs-keyword">const</span> itemsPath = <span class="hljs-title function_">path</span>(<span class="hljs-string">&quot;items&quot;</span>, <span class="hljs-string">&quot;*&quot;</span>);        <span class="hljs-comment">// -&gt; &quot;/items/*&quot;</span>
-<span class="hljs-keyword">const</span> allUsers = <span class="hljs-title function_">path</span>(<span class="hljs-string">&quot;users&quot;</span>, <span class="hljs-string">&quot;**&quot;</span>);       <span class="hljs-comment">// -&gt; &quot;/users/**&quot;</span>
+<pre class="hljs"><code><span class="hljs-keyword">const</span> themeContext = <span class="hljs-title function_">createContext</span>(<span class="hljs-string">&#x27;light&#x27;</span>);
+<span class="hljs-keyword">const</span> userContext = createContext&lt;<span class="hljs-title class_">User</span> | <span class="hljs-literal">null</span>&gt;(<span class="hljs-literal">null</span>);
 </code></pre>
-<h2 id="effects">Effects</h2>
-<p>An effect runs code whenever the signals it reads change:</p>
-<pre class="hljs"><code><span class="hljs-keyword">import</span> { signal, effect, path } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;sairin&#x27;</span>;
-
-<span class="hljs-keyword">const</span> count = <span class="hljs-title function_">signal</span>(<span class="hljs-title function_">path</span>(<span class="hljs-string">&quot;counter&quot;</span>, <span class="hljs-string">&quot;value&quot;</span>), <span class="hljs-number">0</span>);
-
-<span class="hljs-title function_">effect</span>(<span class="hljs-function">() =&gt;</span> {
-  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;Count is now:&quot;</span>, count.<span class="hljs-title function_">get</span>());
-});
-
-count.<span class="hljs-title function_">set</span>(<span class="hljs-number">1</span>);  <span class="hljs-comment">// Logs: &quot;Count is now: 1&quot;</span>
+<hr>
+<h2 id="context-interface">Context Interface</h2>
+<pre class="hljs"><code><span class="hljs-keyword">interface</span> <span class="hljs-title class_">Context</span>&lt;T&gt; {
+  <span class="hljs-attr">defaultValue</span>: T;
+  <span class="hljs-title class_">Provider</span>: <span class="hljs-function">(<span class="hljs-params"><span class="hljs-attr">props</span>: { value: T; children?: <span class="hljs-built_in">any</span> }</span>) =&gt;</span> <span class="hljs-function">() =&gt;</span> <span class="hljs-built_in">void</span>;
+  <span class="hljs-attr">consume</span>: <span class="hljs-function">() =&gt;</span> T;
+}
 </code></pre>
-<h2 id="derived-values">Derived Values</h2>
-<p>A derived value automatically updates when its dependencies change:</p>
-<pre class="hljs"><code><span class="hljs-keyword">import</span> { signal, derived, path } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;sairin&#x27;</span>;
-
-<span class="hljs-keyword">const</span> firstName = <span class="hljs-title function_">signal</span>(<span class="hljs-title function_">path</span>(<span class="hljs-string">&quot;user&quot;</span>, <span class="hljs-string">&quot;firstName&quot;</span>), <span class="hljs-string">&quot;John&quot;</span>);
-<span class="hljs-keyword">const</span> lastName = <span class="hljs-title function_">signal</span>(<span class="hljs-title function_">path</span>(<span class="hljs-string">&quot;user&quot;</span>, <span class="hljs-string">&quot;lastName&quot;</span>), <span class="hljs-string">&quot;Doe&quot;</span>);
-
-<span class="hljs-keyword">const</span> fullName = <span class="hljs-title function_">derived</span>(<span class="hljs-title function_">path</span>(<span class="hljs-string">&quot;user&quot;</span>, <span class="hljs-string">&quot;fullName&quot;</span>), <span class="hljs-function">() =&gt;</span> {
-  <span class="hljs-keyword">return</span> <span class="hljs-string">`<span class="hljs-subst">${firstName.get()}</span> <span class="hljs-subst">${lastName.get()}</span>`</span>;
-});
-
-<span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(fullName.<span class="hljs-title function_">get</span>());  <span class="hljs-comment">// &quot;John Doe&quot;</span>
-</code></pre>
-<h2 id="batching">Batching</h2>
-<p>Batch multiple updates into one effect flush:</p>
-<pre class="hljs"><code><span class="hljs-keyword">import</span> { signal, effect, batch, path } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;sairin&#x27;</span>;
-
-<span class="hljs-keyword">const</span> a = <span class="hljs-title function_">signal</span>(<span class="hljs-title function_">path</span>(<span class="hljs-string">&quot;data&quot;</span>, <span class="hljs-string">&quot;a&quot;</span>), <span class="hljs-number">1</span>);
-<span class="hljs-keyword">const</span> b = <span class="hljs-title function_">signal</span>(<span class="hljs-title function_">path</span>(<span class="hljs-string">&quot;data&quot;</span>, <span class="hljs-string">&quot;b&quot;</span>), <span class="hljs-number">2</span>);
-
-<span class="hljs-title function_">effect</span>(<span class="hljs-function">() =&gt;</span> {
-  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(a.<span class="hljs-title function_">get</span>(), b.<span class="hljs-title function_">get</span>());
-});
-
-<span class="hljs-title function_">batch</span>(<span class="hljs-function">() =&gt;</span> {
-  a.<span class="hljs-title function_">set</span>(<span class="hljs-number">10</span>);
-  b.<span class="hljs-title function_">set</span>(<span class="hljs-number">20</span>);
-});
-
-<span class="hljs-comment">// Effect only runs once, logs: &quot;10 20&quot;</span>
-</code></pre>
-<h2 id="dom-bindings">DOM Bindings</h2>
-<p>Sairin includes bindings for reactive DOM updates:</p>
-<pre class="hljs"><code><span class="hljs-keyword">import</span> { signal, bindText, bindEvent, path } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;sairin&#x27;</span>;
-
-<span class="hljs-keyword">const</span> name = <span class="hljs-title function_">signal</span>(<span class="hljs-title function_">path</span>(<span class="hljs-string">&quot;user&quot;</span>, <span class="hljs-string">&quot;name&quot;</span>), <span class="hljs-string">&quot;World&quot;</span>);
-
-<span class="hljs-comment">// Bind text content</span>
-<span class="hljs-keyword">const</span> cleanup = <span class="hljs-title function_">bindText</span>(<span class="hljs-variable language_">document</span>.<span class="hljs-title function_">querySelector</span>(<span class="hljs-string">&#x27;#greeting&#x27;</span>), name);
-
-<span class="hljs-comment">// Update the signal</span>
-name.<span class="hljs-title function_">set</span>(<span class="hljs-string">&quot;Universe&quot;</span>);  <span class="hljs-comment">// Element updates automatically</span>
-
-<span class="hljs-comment">// Clean up when done</span>
+<h3 id="provider">Provider</h3>
+<p>A component that provides a value to its children. Returns a cleanup function.</p>
+<pre class="hljs"><code><span class="hljs-keyword">const</span> cleanup = themeContext.<span class="hljs-title class_">Provider</span>({ <span class="hljs-attr">value</span>: <span class="hljs-string">&#x27;dark&#x27;</span> });
+<span class="hljs-comment">// ... components can now read &#x27;dark&#x27;</span>
 <span class="hljs-title function_">cleanup</span>();
+<span class="hljs-comment">// ... back to default value</span>
 </code></pre>
-<p>See the <a href="../api/dom">DOM Bindings API</a> for all available bindings.</p>
-<h2 id="whats-next">What’s Next</h2>
-<ul>
-<li><a href="../guide/path-system">Path System</a> - understand paths, globs, and aliases</li>
-<li><a href="../guide/signals">Signals</a> - deep dive into signals</li>
-<li><a href="../guide/effects">Effects</a> - scheduling tiers and cleanup</li>
-<li><a href="../api/dom">DOM Bindings</a> - reactive DOM updates</li>
-<li><a href="../api/context">Context</a> - pass values through component trees</li>
-<li><a href="../api/debug">Debug</a> - inspect and debug the reactive graph</li>
-<li><a href="../getting-started/configuration">Configuration</a> - lock behavior and logging</li>
-</ul>
+<h3 id="consume">consume</h3>
+<p>Read the current value from the context.</p>
+<pre class="hljs"><code><span class="hljs-keyword">const</span> currentValue = themeContext.<span class="hljs-title function_">consume</span>();
+</code></pre>
+<hr>
+<h2 id="usecontext">useContext</h2>
+<p>Hook to read a context value.</p>
+<pre class="hljs"><code><span class="hljs-keyword">function</span> useContext&lt;T&gt;(<span class="hljs-attr">context</span>: <span class="hljs-title class_">Context</span>&lt;T&gt;): T
+</code></pre>
+<pre class="hljs"><code><span class="hljs-keyword">const</span> theme = <span class="hljs-title function_">useContext</span>(themeContext);
+</code></pre>
+<hr>
+<h2 id="usecontextprovider">useContextProvider</h2>
+<p>Convenience function to set up a provider.</p>
+<pre class="hljs"><code><span class="hljs-keyword">function</span> useContextProvider&lt;T&gt;(
+  <span class="hljs-attr">context</span>: <span class="hljs-title class_">Context</span>&lt;T&gt;,
+  <span class="hljs-attr">value</span>: T,
+): <span class="hljs-function">() =&gt;</span> <span class="hljs-built_in">void</span>
+</code></pre>
+<pre class="hljs"><code><span class="hljs-keyword">const</span> cleanup = <span class="hljs-title function_">useContextProvider</span>(themeContext, <span class="hljs-string">&#x27;dark&#x27;</span>);
+</code></pre>
+<hr>
+<h2 id="example">Example</h2>
+<pre class="hljs"><code><span class="hljs-keyword">import</span> { createContext, useContext, useContextProvider } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;sairin&#x27;</span>;
+
+<span class="hljs-keyword">const</span> <span class="hljs-title class_">ThemeContext</span> = <span class="hljs-title function_">createContext</span>(<span class="hljs-string">&#x27;light&#x27;</span>);
+<span class="hljs-keyword">const</span> <span class="hljs-title class_">UserContext</span> = createContext&lt;{ <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span> } | <span class="hljs-literal">null</span>&gt;(<span class="hljs-literal">null</span>);
+
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">App</span>(<span class="hljs-params"></span>) {
+  <span class="hljs-comment">// Provide theme</span>
+  <span class="hljs-keyword">const</span> cleanupTheme = <span class="hljs-title function_">useContextProvider</span>(<span class="hljs-title class_">ThemeContext</span>, <span class="hljs-string">&#x27;dark&#x27;</span>);
+  
+  <span class="hljs-comment">// Provide user</span>
+  <span class="hljs-keyword">const</span> cleanupUser = <span class="hljs-title function_">useContextProvider</span>(<span class="hljs-title class_">UserContext</span>, { <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;Alice&#x27;</span> });
+  
+  <span class="hljs-comment">// Clean up on unmount</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-function">() =&gt;</span> {
+    <span class="hljs-title function_">cleanupTheme</span>();
+    <span class="hljs-title function_">cleanupUser</span>();
+  };
+}
+
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">Header</span>(<span class="hljs-params"></span>) {
+  <span class="hljs-keyword">const</span> theme = <span class="hljs-title function_">useContext</span>(<span class="hljs-title class_">ThemeContext</span>);
+  <span class="hljs-keyword">const</span> user = <span class="hljs-title function_">useContext</span>(<span class="hljs-title class_">UserContext</span>);
+  
+  <span class="hljs-keyword">return</span> <span class="hljs-string">`<span class="hljs-subst">${user?.name}</span> using <span class="hljs-subst">${theme}</span> theme`</span>;
+}
+</code></pre>
+<hr>
+<h2 id="nested-providers">Nested Providers</h2>
+<p>Contexts can be nested, and the inner provider shadows the outer one:</p>
+<pre class="hljs"><code><span class="hljs-keyword">const</span> ctx = <span class="hljs-title function_">createContext</span>(<span class="hljs-string">&#x27;root&#x27;</span>);
+
+<span class="hljs-keyword">const</span> cleanup1 = ctx.<span class="hljs-title class_">Provider</span>({ <span class="hljs-attr">value</span>: <span class="hljs-string">&#x27;outer&#x27;</span> });
+<span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(ctx.<span class="hljs-title function_">consume</span>()); <span class="hljs-comment">// &#x27;outer&#x27;</span>
+
+<span class="hljs-keyword">const</span> cleanup2 = ctx.<span class="hljs-title class_">Provider</span>({ <span class="hljs-attr">value</span>: <span class="hljs-string">&#x27;inner&#x27;</span> });
+<span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(ctx.<span class="hljs-title function_">consume</span>()); <span class="hljs-comment">// &#x27;inner&#x27;</span>
+
+<span class="hljs-title function_">cleanup2</span>();
+<span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(ctx.<span class="hljs-title function_">consume</span>()); <span class="hljs-comment">// &#x27;outer&#x27;</span>
+
+<span class="hljs-title function_">cleanup1</span>();
+<span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(ctx.<span class="hljs-title function_">consume</span>()); <span class="hljs-comment">// &#x27;root&#x27;</span>
+</code></pre>
 
 
-                    
-                    <div class="page-navigation">
-                        
-                        <a href="../../" class="prev-page">
-                            <svg class="lucide-icon icon-arrow-left page-nav-icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="m12 19-7-7 7-7" />
-  <path d="M19 12H5" />
-</svg>
-                            <span><small>Previous</small><strong>Home</strong></span>
-                        </a>
-                        
-                        
-                        <a href="../../getting-started/configuration/" class="next-page">
-                            <span><small>Next</small><strong>Configuration</strong></span>
-                            <svg class="lucide-icon icon-arrow-right page-nav-icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M5 12h14" />
-  <path d="m12 5 7 7-7 7" />
-</svg>
-                        </a>
-                        
-                    </div>
                     
                 </div>
 
@@ -459,35 +443,39 @@ name.<span class="hljs-title function_">set</span>(<span class="hljs-string">&qu
     <ul class="toc-list">
       
         <li class="toc-item toc-level-2">
-          <a href="#installation" class="toc-link">Installation</a>
+          <a href="#overview" class="toc-link">Overview</a>
         </li>
       
         <li class="toc-item toc-level-2">
-          <a href="#your-first-signal" class="toc-link">Your First Signal</a>
+          <a href="#createcontext" class="toc-link">createContext</a>
         </li>
       
         <li class="toc-item toc-level-2">
-          <a href="#paths" class="toc-link">Paths</a>
+          <a href="#context-interface" class="toc-link">Context Interface</a>
+        </li>
+      
+        <li class="toc-item toc-level-3">
+          <a href="#provider" class="toc-link">Provider</a>
+        </li>
+      
+        <li class="toc-item toc-level-3">
+          <a href="#consume" class="toc-link">consume</a>
         </li>
       
         <li class="toc-item toc-level-2">
-          <a href="#effects" class="toc-link">Effects</a>
+          <a href="#usecontext" class="toc-link">useContext</a>
         </li>
       
         <li class="toc-item toc-level-2">
-          <a href="#derived-values" class="toc-link">Derived Values</a>
+          <a href="#usecontextprovider" class="toc-link">useContextProvider</a>
         </li>
       
         <li class="toc-item toc-level-2">
-          <a href="#batching" class="toc-link">Batching</a>
+          <a href="#example" class="toc-link">Example</a>
         </li>
       
         <li class="toc-item toc-level-2">
-          <a href="#dom-bindings" class="toc-link">DOM Bindings</a>
-        </li>
-      
-        <li class="toc-item toc-level-2">
-          <a href="#whats-next" class="toc-link">What’s Next</a>
+          <a href="#nested-providers" class="toc-link">Nested Providers</a>
         </li>
       
     </ul>
