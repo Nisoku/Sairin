@@ -3091,26 +3091,30 @@ function bindInputValue(input, sig) {
   };
   const handleInput = (e) => {
     const target = e.target;
-    sig.set(target.value);
+    if ("set" in sig && typeof sig.set === "function") {
+      sig.set(target.value);
+    }
   };
-  updateValue();
-  input.addEventListener("input", handleInput);
-  return () => {
-    input.removeEventListener("input", handleInput);
-  };
+  return effect(() => {
+    updateValue();
+  });
 }
 function bindInputChecked(input, sig) {
   const updateChecked = () => {
     input.checked = sig.get();
   };
   const handleChange = () => {
-    sig.set(input.checked);
+    if ("set" in sig && typeof sig.set === "function") {
+      sig.set(input.checked);
+    }
   };
-  updateChecked();
   input.addEventListener("change", handleChange);
-  return () => {
-    input.removeEventListener("change", handleChange);
-  };
+  return effect(() => {
+    updateChecked();
+    return () => {
+      input.removeEventListener("change", handleChange);
+    };
+  });
 }
 function bindSelectValue(select, sig) {
   const updateValue = () => {
@@ -3120,13 +3124,17 @@ function bindSelectValue(select, sig) {
     }
   };
   const handleChange = () => {
-    sig.set(select.value);
+    if ("set" in sig && typeof sig.set === "function") {
+      sig.set(select.value);
+    }
   };
-  updateValue();
   select.addEventListener("change", handleChange);
-  return () => {
-    select.removeEventListener("change", handleChange);
-  };
+  return effect(() => {
+    updateValue();
+    return () => {
+      select.removeEventListener("change", handleChange);
+    };
+  });
 }
 function bindVisibility(el, readable) {
   return effect(() => {
@@ -3145,6 +3153,16 @@ function bindDisabled(el, readable) {
       el.setAttribute("disabled", "");
     } else {
       el.removeAttribute("disabled");
+    }
+  });
+}
+function bindBooleanAttribute(el, attr, readable) {
+  return effect(() => {
+    const value = readable.get();
+    if (value) {
+      el.setAttribute(attr, "");
+    } else {
+      el.removeAttribute(attr);
     }
   });
 }
@@ -3174,6 +3192,7 @@ export {
   batch,
   batched,
   bindAttribute,
+  bindBooleanAttribute,
   bindClass,
   bindDisabled,
   bindElementSignal,
