@@ -148,6 +148,35 @@ function bindDisabled(el: Element, readable: Readable<boolean>): () => void
 bindDisabled(submitBtn, isSubmitting);  // Adds/removes "disabled" attribute
 ```
 
+### bindBooleanAttribute
+
+Add or remove a boolean attribute based on a signal value.
+
+```typescript
+function bindBooleanAttribute(
+  el: Element,
+  attr: string,
+  readable: Readable<boolean>
+): () => void
+```
+
+```typescript
+bindBooleanAttribute(div, 'hidden', isHidden);      // <div hidden>
+bindBooleanAttribute(input, 'required', isRequired);    // <input required>
+```
+
+### bindElementSignal
+
+Move an element into/out of a parent based on a signal value.
+
+```typescript
+function bindElementSignal<T extends Element>(
+  el: T,
+  sig: Signal<T | null>,
+  parent: Element
+): () => void
+```
+
 ---
 
 ## Events
@@ -186,7 +215,7 @@ Two-way bind an input's value to a signal.
 ```typescript
 function bindInputValue(
   input: HTMLInputElement | HTMLTextAreaElement,
-  sig: Signal<string>
+  sig: Readable<string>
 ): () => void
 ```
 
@@ -202,7 +231,7 @@ Two-way bind a checkbox or radio's checked state.
 ```typescript
 function bindInputChecked(
   input: HTMLInputElement,
-  sig: Signal<boolean>
+  sig: Readable<boolean>
 ): () => void
 ```
 
@@ -218,7 +247,7 @@ Two-way bind a select element's value.
 ```typescript
 function bindSelectValue(
   select: HTMLSelectElement,
-  sig: Signal<string>
+  sig: Readable<string>
 ): () => void
 ```
 

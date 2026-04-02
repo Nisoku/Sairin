@@ -1,6 +1,6 @@
 {
   "name": "@nisoku/sairin",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Sairin, the modern, powerful, and compact reactive engine.",
   "license": "Apache-2.0",
   "main": "dist/index.js",
