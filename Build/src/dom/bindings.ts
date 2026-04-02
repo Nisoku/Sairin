@@ -86,7 +86,7 @@ export function bindEvent<T extends Element>(
 
 export function bindInputValue(
   input: HTMLInputElement | HTMLTextAreaElement,
-  sig: Signal<string>,
+  sig: Readable<string>,
 ): () => void {
   const updateValue = () => {
     const value = sig.get();
@@ -97,40 +97,43 @@ export function bindInputValue(
 
   const handleInput = (e: Event) => {
     const target = e.target as HTMLInputElement | HTMLTextAreaElement;
-    sig.set(target.value);
+    if ('set' in sig && typeof (sig as Signal<string>).set === 'function') {
+      (sig as Signal<string>).set(target.value);
+    }
   };
 
-  updateValue();
-  input.addEventListener("input", handleInput);
-
-  return () => {
-    input.removeEventListener("input", handleInput);
-  };
+  return effect(() => {
+    updateValue();
+  });
 }
 
 export function bindInputChecked(
   input: HTMLInputElement,
-  sig: Signal<boolean>,
+  sig: Readable<boolean>,
 ): () => void {
   const updateChecked = () => {
     input.checked = sig.get();
   };
 
   const handleChange = () => {
-    sig.set(input.checked);
+    if ('set' in sig && typeof (sig as Signal<boolean>).set === 'function') {
+      (sig as Signal<boolean>).set(input.checked);
+    }
   };
 
-  updateChecked();
   input.addEventListener("change", handleChange);
 
-  return () => {
-    input.removeEventListener("change", handleChange);
-  };
+  return effect(() => {
+    updateChecked();
+    return () => {
+      input.removeEventListener("change", handleChange);
+    };
+  });
 }
 
 export function bindSelectValue(
   select: HTMLSelectElement,
-  sig: Signal<string>,
+  sig: Readable<string>,
 ): () => void {
   const updateValue = () => {
     const value = sig.get();
@@ -140,15 +143,19 @@ export function bindSelectValue(
   };
 
   const handleChange = () => {
-    sig.set(select.value);
+    if ('set' in sig && typeof (sig as Signal<string>).set === 'function') {
+      (sig as Signal<string>).set(select.value);
+    }
   };
 
-  updateValue();
   select.addEventListener("change", handleChange);
 
-  return () => {
-    select.removeEventListener("change", handleChange);
-  };
+  return effect(() => {
+    updateValue();
+    return () => {
+      select.removeEventListener("change", handleChange);
+    };
+  });
 }
 
 export function bindVisibility(
@@ -175,6 +182,21 @@ export function bindDisabled(
       el.setAttribute("disabled", "");
     } else {
       el.removeAttribute("disabled");
+    }
+  });
+}
+
+export function bindBooleanAttribute(
+  el: Element,
+  attr: string,
+  readable: Readable<boolean>,
+): () => void {
+  return effect(() => {
+    const value = readable.get();
+    if (value) {
+      el.setAttribute(attr, "");
+    } else {
+      el.removeAttribute(attr);
     }
   });
 }
