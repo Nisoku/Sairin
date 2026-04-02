@@ -444,6 +444,25 @@
 </code></pre>
 <pre class="hljs"><code><span class="hljs-title function_">bindDisabled</span>(submitBtn, isSubmitting);  <span class="hljs-comment">// Adds/removes &quot;disabled&quot; attribute</span>
 </code></pre>
+<h3 id="bindbooleanattribute">bindBooleanAttribute</h3>
+<p>Add or remove a boolean attribute based on a signal value.</p>
+<pre class="hljs"><code><span class="hljs-keyword">function</span> <span class="hljs-title function_">bindBooleanAttribute</span>(<span class="hljs-params">
+  <span class="hljs-attr">el</span>: <span class="hljs-title class_">Element</span>,
+  <span class="hljs-attr">attr</span>: <span class="hljs-built_in">string</span>,
+  <span class="hljs-attr">readable</span>: <span class="hljs-title class_">Readable</span>&lt;<span class="hljs-built_in">boolean</span>&gt;
+</span>): <span class="hljs-function">() =&gt;</span> <span class="hljs-built_in">void</span>
+</code></pre>
+<pre class="hljs"><code><span class="hljs-title function_">bindBooleanAttribute</span>(div, <span class="hljs-string">&#x27;hidden&#x27;</span>, isHidden);      <span class="hljs-comment">// &lt;div hidden&gt;</span>
+<span class="hljs-title function_">bindBooleanAttribute</span>(input, <span class="hljs-string">&#x27;required&#x27;</span>, isRequired);    <span class="hljs-comment">// &lt;input required&gt;</span>
+</code></pre>
+<h3 id="bindelementsignal">bindElementSignal</h3>
+<p>Move an element into/out of a parent based on a signal value.</p>
+<pre class="hljs"><code><span class="hljs-keyword">function</span> bindElementSignal&lt;T <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Element</span>&gt;(
+  <span class="hljs-attr">el</span>: T,
+  <span class="hljs-attr">sig</span>: <span class="hljs-title class_">Signal</span>&lt;T | <span class="hljs-literal">null</span>&gt;,
+  <span class="hljs-attr">parent</span>: <span class="hljs-title class_">Element</span>
+): <span class="hljs-function">() =&gt;</span> <span class="hljs-built_in">void</span>
+</code></pre>
 <hr>
 <h2 id="events">Events</h2>
 <h3 id="bindevent">bindEvent</h3>
@@ -469,7 +488,7 @@
 <p>Two-way bind an input’s value to a signal.</p>
 <pre class="hljs"><code><span class="hljs-keyword">function</span> <span class="hljs-title function_">bindInputValue</span>(<span class="hljs-params">
   <span class="hljs-attr">input</span>: <span class="hljs-title class_">HTMLInputElement</span> | <span class="hljs-title class_">HTMLTextAreaElement</span>,
-  <span class="hljs-attr">sig</span>: <span class="hljs-title class_">Signal</span>&lt;<span class="hljs-built_in">string</span>&gt;
+  <span class="hljs-attr">sig</span>: <span class="hljs-title class_">Readable</span>&lt;<span class="hljs-built_in">string</span>&gt;
 </span>): <span class="hljs-function">() =&gt;</span> <span class="hljs-built_in">void</span>
 </code></pre>
 <pre class="hljs"><code><span class="hljs-keyword">const</span> username = <span class="hljs-title function_">signal</span>(<span class="hljs-title function_">path</span>(<span class="hljs-string">&quot;form&quot;</span>, <span class="hljs-string">&quot;username&quot;</span>), <span class="hljs-string">&quot;&quot;</span>);
@@ -479,7 +498,7 @@
 <p>Two-way bind a checkbox or radio’s checked state.</p>
 <pre class="hljs"><code><span class="hljs-keyword">function</span> <span class="hljs-title function_">bindInputChecked</span>(<span class="hljs-params">
   <span class="hljs-attr">input</span>: <span class="hljs-title class_">HTMLInputElement</span>,
-  <span class="hljs-attr">sig</span>: <span class="hljs-title class_">Signal</span>&lt;<span class="hljs-built_in">boolean</span>&gt;
+  <span class="hljs-attr">sig</span>: <span class="hljs-title class_">Readable</span>&lt;<span class="hljs-built_in">boolean</span>&gt;
 </span>): <span class="hljs-function">() =&gt;</span> <span class="hljs-built_in">void</span>
 </code></pre>
 <pre class="hljs"><code><span class="hljs-keyword">const</span> agreed = <span class="hljs-title function_">signal</span>(<span class="hljs-title function_">path</span>(<span class="hljs-string">&quot;form&quot;</span>, <span class="hljs-string">&quot;agreed&quot;</span>), <span class="hljs-literal">false</span>);
@@ -489,7 +508,7 @@
 <p>Two-way bind a select element’s value.</p>
 <pre class="hljs"><code><span class="hljs-keyword">function</span> <span class="hljs-title function_">bindSelectValue</span>(<span class="hljs-params">
   <span class="hljs-attr">select</span>: <span class="hljs-title class_">HTMLSelectElement</span>,
-  <span class="hljs-attr">sig</span>: <span class="hljs-title class_">Signal</span>&lt;<span class="hljs-built_in">string</span>&gt;
+  <span class="hljs-attr">sig</span>: <span class="hljs-title class_">Readable</span>&lt;<span class="hljs-built_in">string</span>&gt;
 </span>): <span class="hljs-function">() =&gt;</span> <span class="hljs-built_in">void</span>
 </code></pre>
 <pre class="hljs"><code><span class="hljs-keyword">const</span> color = <span class="hljs-title function_">signal</span>(<span class="hljs-title function_">path</span>(<span class="hljs-string">&quot;settings&quot;</span>, <span class="hljs-string">&quot;color&quot;</span>), <span class="hljs-string">&quot;blue&quot;</span>);
@@ -588,6 +607,14 @@
       
         <li class="toc-item toc-level-3">
           <a href="#binddisabled" class="toc-link">bindDisabled</a>
+        </li>
+      
+        <li class="toc-item toc-level-3">
+          <a href="#bindbooleanattribute" class="toc-link">bindBooleanAttribute</a>
+        </li>
+      
+        <li class="toc-item toc-level-3">
+          <a href="#bindelementsignal" class="toc-link">bindElementSignal</a>
         </li>
       
         <li class="toc-item toc-level-2">
