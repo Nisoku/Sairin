@@ -1,5 +1,6 @@
 module.exports = {
   siteTitle: 'Sairin',
+  siteUrl: "https://nisoku.org/Sairin/docs",
   srcDir: 'docs',
   outputDir: 'site',
 
