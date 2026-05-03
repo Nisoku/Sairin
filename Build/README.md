@@ -11,7 +11,7 @@
 [![npm version](https://img.shields.io/npm/v/@nisoku/sairin.svg)](https://www.npmjs.com/package/@nisoku/sairin)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 
-[Documentation](https://nisoku.github.io/Sairin/) | [API Reference](https://nisoku.github.io/Sairin/api/)
+[Documentation](https://nisoku.org/Sairin/) | [API Reference](https://nisoku.org/Sairin/api/)
 
 </div>
 
@@ -75,19 +75,19 @@ Sairin is available on [NPM](https://www.npmjs.com/package/@nisoku/sairin)!
 
 | Section | Description |
 | --------- | ------------- |
-| [Quick Start](https://nisoku.github.io/Sairin/getting-started/quickstart) | Your first Sairin app |
-| [Configuration](https://nisoku.github.io/Sairin/getting-started/configuration) | Lock behavior and logging |
-| [Path System](https://nisoku.github.io/Sairin/guide/path-system) | Paths, globs, and aliases |
-| [Signals](https://nisoku.github.io/Sairin/guide/signals) | Creating and using signals |
-| [Effects](https://nisoku.github.io/Sairin/guide/effects) | Running code when signals change |
-| [Derived](https://nisoku.github.io/Sairin/guide/derived) | Computed values that auto-update |
-| [Batching](https://nisoku.github.io/Sairin/guide/batching) | Grouping updates efficiently |
-| [Locks](https://nisoku.github.io/Sairin/guide/locks) | Preventing unauthorized writes |
-| [API Reference](https://nisoku.github.io/Sairin/api/) | Complete API documentation |
+| [Quick Start](https://nisoku.org/Sairin/getting-started/quickstart) | Your first Sairin app |
+| [Configuration](https://nisoku.org/Sairin/getting-started/configuration) | Lock behavior and logging |
+| [Path System](https://nisoku.org/Sairin/guide/path-system) | Paths, globs, and aliases |
+| [Signals](https://nisoku.org/Sairin/guide/signals) | Creating and using signals |
+| [Effects](https://nisoku.org/Sairin/guide/effects) | Running code when signals change |
+| [Derived](https://nisoku.org/Sairin/guide/derived) | Computed values that auto-update |
+| [Batching](https://nisoku.org/Sairin/guide/batching) | Grouping updates efficiently |
+| [Locks](https://nisoku.org/Sairin/guide/locks) | Preventing unauthorized writes |
+| [API Reference](https://nisoku.org/Sairin/api/) | Complete API documentation |
 
 ## Used By
 
-- **[Sakko](https://nisoku.github.io/Sakko/)** - A DSL compiler that uses Sairin for reactive state in compiled components
+- **[Sakko](https://nisoku.org/Sakko/)** - A DSL compiler that uses Sairin for reactive state in compiled components
 
 ## Project Structure
 
