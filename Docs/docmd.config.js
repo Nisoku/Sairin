@@ -1,8 +1,8 @@
 module.exports = {
-  siteTitle: 'Sairin',
-  siteUrl: "https://nisoku.org/Sairin/docs",
-  srcDir: 'docs',
-  outputDir: 'site',
+  title: 'Sairin',
+  url: "https://nisoku.org/Sairin/docs",
+  src: 'docs',
+  out: 'site',
 
   favicon: 'assets/icons/favicon.svg',
 
@@ -21,6 +21,9 @@ module.exports = {
     sitemap: {
       defaultChangefreq: 'weekly',
       defaultPriority: 0.8
+    },
+    "llms": {
+      "fullContext": true
     }
   },
 
