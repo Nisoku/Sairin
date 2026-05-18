@@ -1,6 +1,6 @@
 module.exports = {
   title: 'Sairin',
-  url: "https://nisoku.org/Sairin/docs",
+  url: "https://nisoku.org/Sairin/",
   src: 'docs',
   out: 'site',
 
