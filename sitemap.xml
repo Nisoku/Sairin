@@ -1,88 +1,88 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://nisoku.org/Sairin/docs/api/async/</loc>
+    <loc>https://nisoku.org/Sairin/api/async/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nisoku.org/Sairin/docs/api/context/</loc>
+    <loc>https://nisoku.org/Sairin/api/context/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nisoku.org/Sairin/docs/api/debug/</loc>
+    <loc>https://nisoku.org/Sairin/api/debug/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nisoku.org/Sairin/docs/api/dom/</loc>
+    <loc>https://nisoku.org/Sairin/api/dom/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nisoku.org/Sairin/docs/api/flow/</loc>
+    <loc>https://nisoku.org/Sairin/api/flow/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nisoku.org/Sairin/docs/api/</loc>
+    <loc>https://nisoku.org/Sairin/api/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nisoku.org/Sairin/docs/api/kernel/</loc>
+    <loc>https://nisoku.org/Sairin/api/kernel/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nisoku.org/Sairin/docs/api/store/</loc>
+    <loc>https://nisoku.org/Sairin/api/store/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nisoku.org/Sairin/docs/getting-started/configuration/</loc>
+    <loc>https://nisoku.org/Sairin/getting-started/configuration/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nisoku.org/Sairin/docs/getting-started/quickstart/</loc>
+    <loc>https://nisoku.org/Sairin/getting-started/quickstart/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nisoku.org/Sairin/docs/guide/batching/</loc>
+    <loc>https://nisoku.org/Sairin/guide/batching/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nisoku.org/Sairin/docs/guide/derived/</loc>
+    <loc>https://nisoku.org/Sairin/guide/derived/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nisoku.org/Sairin/docs/guide/effects/</loc>
+    <loc>https://nisoku.org/Sairin/guide/effects/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nisoku.org/Sairin/docs/guide/locks/</loc>
+    <loc>https://nisoku.org/Sairin/guide/locks/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nisoku.org/Sairin/docs/guide/path-system/</loc>
+    <loc>https://nisoku.org/Sairin/guide/path-system/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nisoku.org/Sairin/docs/guide/signals/</loc>
+    <loc>https://nisoku.org/Sairin/guide/signals/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nisoku.org/Sairin/docs/</loc>
+    <loc>https://nisoku.org/Sairin/</loc>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>1</priority>
   </url>
 </urlset>
