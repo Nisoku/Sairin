@@ -21,9 +21,6 @@ module.exports = {
     sitemap: {
       defaultChangefreq: 'weekly',
       defaultPriority: 0.8
-    },
-    "llms": {
-      "fullContext": true
     }
   },
 

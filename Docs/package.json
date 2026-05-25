@@ -5,13 +5,11 @@
   "description": "Documentation for Sairin",
   "scripts": {
     "dev": "docmd dev",
-    "build": "docmd build",
-    "clean": "rm -rf site",
-    "prebuild": "npm run clean"
+    "build": "docmd build"
   },
   "keywords": [],
   "license": "Apache-2.0",
   "devDependencies": {
-    "@docmd/core": "^0.8.3"
+    "@docmd/core": "^0.8.4"
   }
 }

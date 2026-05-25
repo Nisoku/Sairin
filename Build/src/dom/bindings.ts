@@ -97,7 +97,7 @@ export function bindInputValue(
 
   const handleInput = (e: Event) => {
     const target = e.target as HTMLInputElement | HTMLTextAreaElement;
-    if ('set' in sig && typeof (sig as Signal<string>).set === 'function') {
+    if ("set" in sig && typeof (sig as Signal<string>).set === "function") {
       (sig as Signal<string>).set(target.value);
     }
   };
@@ -116,7 +116,7 @@ export function bindInputChecked(
   };
 
   const handleChange = () => {
-    if ('set' in sig && typeof (sig as Signal<boolean>).set === 'function') {
+    if ("set" in sig && typeof (sig as Signal<boolean>).set === "function") {
       (sig as Signal<boolean>).set(input.checked);
     }
   };
@@ -143,7 +143,7 @@ export function bindSelectValue(
   };
 
   const handleChange = () => {
-    if ('set' in sig && typeof (sig as Signal<string>).set === 'function') {
+    if ("set" in sig && typeof (sig as Signal<string>).set === "function") {
       (sig as Signal<string>).set(select.value);
     }
   };
