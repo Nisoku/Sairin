@@ -304,6 +304,12 @@ describe('derived', () => {
     expect(totalCount.get()).toBe(6);
     expect(itemNames.get()).toBe('date, elderberry');
   });
+
+  test('should throw when called without a PathKey', () => {
+    expect(() => {
+      (derived as any)(() => 42);
+    }).toThrow("derived() requires a valid PathKey as first argument");
+  });
 });
 
 describe('effect', () => {

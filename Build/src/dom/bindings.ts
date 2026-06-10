@@ -102,9 +102,16 @@ export function bindInputValue(
     }
   };
 
-  return effect(() => {
+  input.addEventListener("input", handleInput);
+
+  const disposeEffect = effect(() => {
     updateValue();
   });
+
+  return () => {
+    input.removeEventListener("input", handleInput);
+    disposeEffect();
+  };
 }
 
 export function bindInputChecked(

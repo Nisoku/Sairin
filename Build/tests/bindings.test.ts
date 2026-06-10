@@ -11,6 +11,7 @@ import {
   bindStyle,
   bindVisibility,
   bindDisabled,
+  bindInputValue,
   type Readable,
 } from '../src/dom/bindings';
 
@@ -562,5 +563,49 @@ describe('Integration Patterns', () => {
     expect(subtotal.get()).toBe(15);
     expect(tax.get()).toBeCloseTo(1.5, 2);
     expect(total.get()).toBeCloseTo(16.5, 2);
+  });
+
+  describe('bindInputValue', () => {
+    test('two-way binding: signal to input and input to signal', async () => {
+      const input = document.createElement('input');
+      document.body.appendChild(input);
+
+      const sig = signal(path("test", "inputValue"), "initial");
+      bindInputValue(input, sig);
+      await Promise.resolve();
+
+      expect(input.value).toBe("initial");
+
+      sig.set("updated");
+      await Promise.resolve();
+      expect(input.value).toBe("updated");
+
+      input.value = "user typed";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      await Promise.resolve();
+
+      expect(sig.get()).toBe("user typed");
+
+      document.body.removeChild(input);
+    });
+
+    test('dispose cleanup removes event listener', async () => {
+      const input = document.createElement('input');
+      document.body.appendChild(input);
+
+      const sig = signal(path("test", "inputCleanup"), "val");
+      const dispose = bindInputValue(input, sig);
+      await Promise.resolve();
+
+      dispose();
+
+      input.value = "should not sync";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      await Promise.resolve();
+
+      expect(sig.get()).toBe("val");
+
+      document.body.removeChild(input);
+    });
   });
 });

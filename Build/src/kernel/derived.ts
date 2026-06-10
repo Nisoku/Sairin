@@ -9,6 +9,7 @@ import {
   getOrCreateNode,
   getNode,
   getAllNodes,
+  isPathKey,
   type PathKey,
   type DerivedNode,
   type ReactiveNode,
@@ -133,5 +134,10 @@ export function derived<T>(
   fn: () => T,
   options?: DerivedOptions,
 ): Derived<T> {
+  if (!isPathKey(path)) {
+    throw new Error(
+      `derived() requires a valid PathKey as first argument. Got ${typeof path}. Use path(...) to create a path.`,
+    );
+  }
   return new Derived(path, fn, options);
 }
