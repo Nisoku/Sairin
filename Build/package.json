@@ -41,7 +41,7 @@
   "homepage": "https://github.com/Nisoku/Sairin#readme",
   "devDependencies": {
     "@types/jest": "^30.0.0",
-    "@types/node": "^25.2.3",
+    "@types/node": "^26.0.0",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
     "prettier": "^3.8.1",
