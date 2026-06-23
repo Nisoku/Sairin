@@ -1473,7 +1473,7 @@ function watch(pattern, callback) {
 			node.subscribers.add(handler);
 			const handlers = nodeHandlers.get(node);
 			if (handlers) handlers.add(handler);
-			else nodeHandlers.set(node, new Set([handler]));
+			else nodeHandlers.set(node, /* @__PURE__ */ new Set([handler]));
 		}
 	};
 	for (const node of nodeRegistry.values()) checkAndSubscribe(node);
