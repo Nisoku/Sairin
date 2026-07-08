@@ -66,7 +66,7 @@ export function bindStyle(
 ): () => void {
   return effect(() => {
     const value = readable.get();
-    (el.style as Record<string, string>)[styleProp] = value;
+    (el.style as unknown as Record<string, string>)[styleProp] = value;
   });
 }
 

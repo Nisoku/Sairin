@@ -4,7 +4,11 @@ import { Derived } from "../kernel/derived";
 export interface DebugHooks {
   onSignalCreated?: (signal: Signal<unknown>, name?: string) => void;
   onSignalRead?: (signal: Signal<unknown>) => void;
-  onSignalWritten?: (signal: Signal<unknown>, oldValue: unknown, newValue: unknown) => void;
+  onSignalWritten?: (
+    signal: Signal<unknown>,
+    oldValue: unknown,
+    newValue: unknown,
+  ) => void;
   onEffectCreated?: (effect: () => void) => void;
   onEffectRun?: (effect: () => void) => void;
   onDerivedInvalidated?: (derived: Derived<unknown>) => void;
@@ -33,7 +37,10 @@ export function getDebugHooks(): DebugHooks {
   return debugHooks;
 }
 
-export function notifySignalCreated(signal: Signal<unknown>, name?: string): void {
+export function notifySignalCreated(
+  signal: Signal<unknown>,
+  name?: string,
+): void {
   debugHooks.onSignalCreated?.(signal, name);
 }
 

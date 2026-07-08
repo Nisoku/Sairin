@@ -1,7 +1,4 @@
-import {
-  Subscriber,
-  getGlobalActiveComputation,
-} from "./dependency";
+import { Subscriber, getGlobalActiveComputation } from "./dependency";
 import { PathKey, matchesPath } from "./path";
 import { getSairinConfig, getSairinLogger } from "./config";
 
@@ -44,10 +41,7 @@ function pathToString(p: PathKey): string {
   return p.raw;
 }
 
-export function getOrCreateNode(
-  p: PathKey,
-  kind: ReactiveKind,
-): ReactiveNode {
+export function getOrCreateNode(p: PathKey, kind: ReactiveKind): ReactiveNode {
   const key = pathToString(p);
   let node = nodeRegistry.get(key);
 

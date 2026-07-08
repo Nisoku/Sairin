@@ -79,9 +79,6 @@ export class Signal<T> {
     );
   }
 
-  pipe<A, B, C>(...fns: [(t: T) => A, (a: A) => B, (b: B) => C]): Derived<C>;
-  pipe<A, B>(...fns: [(t: T) => A, (a: A) => B]): Derived<B>;
-  pipe<A>(...fns: [(t: T) => A]): Derived<A>;
   pipe(...fns: Array<(v: unknown) => unknown>): Derived<unknown> {
     return this.map((v) => fns.reduce((acc, fn) => fn(acc), v as unknown));
   }

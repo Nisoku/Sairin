@@ -31,33 +31,32 @@ export function reactive<T extends object>(
   const storePath = isPathKey(basePath)
     ? basePath.raw
     : basePath || `store_${id}`;
-  const result: Record<string, unknown> = {};
+  const result = {} as Record<string | symbol, unknown>;
   const signal$ = signal(path(storePath, "$"), obj);
 
-  for (const key of Object.keys(obj) as (keyof T)[]) {
-    const value = obj[key];
+  for (const key of Object.keys(obj)) {
+    const value = obj[key as keyof T];
 
     if (Array.isArray(value)) {
-      // Handle arrays by wrapping elements with signals
       const arrSignal = signal(path(storePath, String(key)), value);
       result[key] = new Proxy(arrSignal, {
         get(target, prop) {
           if (prop === "length") return target.get().length;
           if (typeof prop === "number") return target.get()[prop];
           if (prop === "get") return () => target.get();
-          return (target.get() as Record<string, unknown>)[prop];
+          return (target.get() as Record<string, unknown>)[prop as string];
         },
         set(target, prop, newValue) {
           if (prop === "length") {
-            const arr = [...target.get()];
-            arr.length = newValue;
-            target.set(arr);
+            const arr = [...target.get()] as unknown as T[keyof T] & unknown[];
+            arr.length = newValue as number;
+            target.set(arr as T[keyof T] & unknown[]);
             return true;
           }
           if (typeof prop === "number") {
-            const arr = [...target.get()];
-            arr[prop] = newValue;
-            target.set(arr);
+            const arr = [...target.get()] as unknown as T[keyof T] & unknown[];
+            (arr as unknown[])[prop] = newValue;
+            target.set(arr as T[keyof T] & unknown[]);
             return true;
           }
           return false;
@@ -73,34 +72,32 @@ export function reactive<T extends object>(
   result.$ = signal$;
   result.$raw = obj;
 
-  const proxy = new Proxy(result, {
+  const proxy = new Proxy(result as Record<string | symbol, unknown>, {
     get(target, prop) {
       if (prop === "$") return target.$;
       if (prop === "$raw") return target.$raw;
-      return target[prop];
+      return target[prop as string];
     },
     set(target, prop, newValue) {
       if (prop === "$" || prop === "$raw") {
         throw new Error("Cannot set $ or $raw directly");
       }
-      const existingProp = target[prop];
+      const existingProp = target[prop as string];
       if (existingProp && existingProp instanceof Signal) {
         existingProp.set(newValue);
       } else if (isObject(newValue) && newValue !== null) {
-        // Convert to ReactiveObject for nested objects
-        const parentSegments = target.$.path.segments;
+        const parentSegments = (target.$ as Signal<T>).path.segments;
         const childPath = path(...parentSegments, String(prop));
-        target[prop] = reactive(newValue, childPath);
+        target[prop as string] = reactive(newValue, childPath);
       } else {
-        // Convert to Signal to maintain reactive invariant
-        const parentSegments = target.$.path.segments;
-        target[prop] = signal(path(...parentSegments, String(prop)), newValue);
+        const parentSegments = (target.$ as Signal<T>).path.segments;
+        target[prop as string] = signal(path(...parentSegments, String(prop)), newValue);
       }
       return true;
     },
   });
 
-  return proxy;
+  return proxy as unknown as ReactiveObject<T>;
 }
 
 export function isReactive<T>(value: unknown): value is ReactiveObject<T> {
@@ -115,10 +112,10 @@ export function setReactive<T extends object>(
   reactiveObj: ReactiveObject<T>,
   value: T,
 ): void {
-  for (const key of Object.keys(value) as (keyof T)[]) {
-    const propSignal = reactiveObj[key];
+  for (const key of Object.keys(value)) {
+    const propSignal = reactiveObj[key as keyof T];
     if (propSignal && propSignal instanceof Signal) {
-      (propSignal as Signal<unknown>).set(value[key]);
+      (propSignal as Signal<unknown>).set(value[key as keyof T]);
     }
   }
   reactiveObj.$.set(value);

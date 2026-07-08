@@ -25,7 +25,7 @@ export function createContext<T>(defaultValue: T, name?: string): Context<T> {
       if (!stack || stack.length === 0) {
         return defaultValue;
       }
-      return stack[stack.length - 1];
+      return stack[stack.length - 1] as T;
     },
   };
 }

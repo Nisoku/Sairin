@@ -465,9 +465,9 @@ describe('Signal.pipe', () => {
   test('should chain transforms', () => {
     const sig = new Signal(path("test", "pipe"), 5);
     const result = sig.pipe(
-      (x: number) => x * 2,
-      (x: number) => x + 1,
-      (x: number) => `Value: ${x}`,
+      (x: unknown) => (x as number) * 2,
+      (x: unknown) => (x as number) + 1,
+      (x: unknown) => `Value: ${x as number}`,
     );
     expect(result.get()).toBe("Value: 11");
   });
@@ -475,8 +475,8 @@ describe('Signal.pipe', () => {
   test('should reactively update through chain', () => {
     const sig = new Signal(path("test", "pipeRx"), 5);
     const result = sig.pipe(
-      (x: number) => x * 2,
-      (x: number) => x + 1,
+      (x: unknown) => (x as number) * 2,
+      (x: unknown) => (x as number) + 1,
     );
     expect(result.get()).toBe(11);
 
@@ -486,7 +486,7 @@ describe('Signal.pipe', () => {
 
   test('single function pipe equals map', () => {
     const sig = new Signal(path("test", "pipeEq"), 5);
-    const piped = sig.pipe((x: number) => x * 2);
+    const piped = sig.pipe((x: unknown) => (x as number) * 2);
     const mapped = sig.map(x => x * 2);
     expect(piped.get()).toBe(mapped.get());
   });
