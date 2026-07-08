@@ -7,7 +7,6 @@ import {
   unsubscribe,
   notifySubscribers,
   getOrCreateNode,
-  getNode,
   getAllNodes,
   isPathKey,
   type PathKey,
@@ -130,25 +129,16 @@ export class Derived<T> {
   }
 
   map<U>(fn: (value: T) => U): Derived<U> {
-    const src = this;
-    return derived(path(...src.path.segments, `$map${++mapSeq}`), () => fn(src.get()));
+    return derived(path(...this.path.segments, `$map${++mapSeq}`), () =>
+      fn(this.get()),
+    );
   }
 
-  pipe<A, B, C>(
-    ...fns: [
-      (t: T) => A,
-      (a: A) => B,
-      (b: B) => C,
-    ]
-  ): Derived<C>;
-  pipe<A, B>(
-    ...fns: [(t: T) => A, (a: A) => B]
-  ): Derived<B>;
-  pipe<A>(
-    ...fns: [(t: T) => A]
-  ): Derived<A>;
-  pipe(...fns: Array<(v: any) => any>): Derived<any> {
-    return this.map((v) => fns.reduce((acc, fn) => fn(acc), v));
+  pipe<A, B, C>(...fns: [(t: T) => A, (a: A) => B, (b: B) => C]): Derived<C>;
+  pipe<A, B>(...fns: [(t: T) => A, (a: A) => B]): Derived<B>;
+  pipe<A>(...fns: [(t: T) => A]): Derived<A>;
+  pipe(...fns: Array<(v: unknown) => unknown>): Derived<unknown> {
+    return this.map((v) => fns.reduce((acc, fn) => fn(acc), v as unknown));
   }
 }
 

@@ -18,7 +18,7 @@ export function generateId(): number {
 }
 
 let uniqueIdCounter = 0;
-let uniqueIdRandom = Math.random().toString(36).slice(2, 8);
+const uniqueIdRandom = Math.random().toString(36).slice(2, 8);
 
 export function generateUniqueId(): string {
   uniqueIdCounter++;

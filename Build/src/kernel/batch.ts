@@ -1,6 +1,6 @@
 type EffectFn = () => void;
 
-let pendingEffects = new Set<EffectFn>();
+const pendingEffects = new Set<EffectFn>();
 let flushScheduled = false;
 let flushGeneration = 0;
 let batchDepth = 0;
@@ -21,7 +21,7 @@ export function scheduleEffect(fn: EffectFn): void {
 }
 
 export function batch(fn: () => void): void {
-  const previousDepth = batchDepth;
+  const _previousDepth = batchDepth;
   batchDepth++;
 
   try {

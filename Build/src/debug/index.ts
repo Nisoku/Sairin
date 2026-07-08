@@ -2,12 +2,12 @@ import { Signal } from "../kernel/signal";
 import { Derived } from "../kernel/derived";
 
 export interface DebugHooks {
-  onSignalCreated?: (signal: Signal<any>, name?: string) => void;
-  onSignalRead?: (signal: Signal<any>) => void;
-  onSignalWritten?: (signal: Signal<any>, oldValue: any, newValue: any) => void;
+  onSignalCreated?: (signal: Signal<unknown>, name?: string) => void;
+  onSignalRead?: (signal: Signal<unknown>) => void;
+  onSignalWritten?: (signal: Signal<unknown>, oldValue: unknown, newValue: unknown) => void;
   onEffectCreated?: (effect: () => void) => void;
   onEffectRun?: (effect: () => void) => void;
-  onDerivedInvalidated?: (derived: Derived<any>) => void;
+  onDerivedInvalidated?: (derived: Derived<unknown>) => void;
 }
 
 const defaultHooks: DebugHooks = {
@@ -33,18 +33,18 @@ export function getDebugHooks(): DebugHooks {
   return debugHooks;
 }
 
-export function notifySignalCreated(signal: Signal<any>, name?: string): void {
+export function notifySignalCreated(signal: Signal<unknown>, name?: string): void {
   debugHooks.onSignalCreated?.(signal, name);
 }
 
-export function notifySignalRead(signal: Signal<any>): void {
+export function notifySignalRead(signal: Signal<unknown>): void {
   debugHooks.onSignalRead?.(signal);
 }
 
 export function notifySignalWritten(
-  signal: Signal<any>,
-  oldValue: any,
-  newValue: any,
+  signal: Signal<unknown>,
+  oldValue: unknown,
+  newValue: unknown,
 ): void {
   debugHooks.onSignalWritten?.(signal, oldValue, newValue);
 }
@@ -57,13 +57,13 @@ export function notifyEffectRun(effect: () => void): void {
   debugHooks.onEffectRun?.(effect);
 }
 
-export function notifyDerivedInvalidated(derived: Derived<any>): void {
+export function notifyDerivedInvalidated(derived: Derived<unknown>): void {
   debugHooks.onDerivedInvalidated?.(derived);
 }
 
 export interface GraphSnapshotSignal {
   id: number;
-  value: any;
+  value: unknown;
   subscriberCount: number;
 }
 
@@ -74,7 +74,7 @@ export interface GraphSnapshotEffect {
 
 export interface GraphSnapshotDerived {
   id: number;
-  cached: any;
+  cached: unknown;
   dirty: boolean;
   dependencies: number[];
 }
@@ -85,11 +85,11 @@ export interface GraphSnapshot {
   derived: GraphSnapshotDerived[];
 }
 
-const registeredSignals = new Map<number, Signal<any>>();
+const registeredSignals = new Map<number, Signal<unknown>>();
 const registeredEffects = new Map<number, () => void>();
-const registeredDerived = new Map<number, Derived<any>>();
+const registeredDerived = new Map<number, Derived<unknown>>();
 
-export function registerSignal(signal: Signal<any>): void {
+export function registerSignal(signal: Signal<unknown>): void {
   registeredSignals.set(signal.id, signal);
 }
 
@@ -97,7 +97,7 @@ export function registerEffect(effect: () => void, id: number): void {
   registeredEffects.set(id, effect);
 }
 
-export function registerDerived(derived: Derived<any>): void {
+export function registerDerived(derived: Derived<unknown>): void {
   registeredDerived.set(derived.id, derived);
 }
 
@@ -114,7 +114,7 @@ export function captureGraph(): GraphSnapshot {
     });
   });
 
-  registeredEffects.forEach((effect) => {
+  registeredEffects.forEach((_effect) => {
     effects.push({
       id: 0,
       dependencies: [],

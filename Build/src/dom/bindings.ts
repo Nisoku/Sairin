@@ -1,8 +1,6 @@
-import { Signal } from "../kernel/signal";
-import { Derived } from "../kernel/derived";
-import { effect, onCleanup } from "../kernel/effect";
-
-export type Readable<T> = Signal<T> | Derived<T>;
+import { effect } from "../kernel/effect";
+import type { Readable, Signal } from "../kernel";
+export type { Readable };
 
 export function bindText(el: Node, readable: Readable<string>): () => void {
   const update = () => {
@@ -29,7 +27,7 @@ export function bindHtml(el: Element, readable: Readable<string>): () => void {
 export function bindAttribute(
   el: Element,
   attr: string,
-  readable: Readable<any>,
+  readable: Readable<unknown>,
 ): () => void {
   return effect(() => {
     const value = readable.get();
@@ -48,8 +46,8 @@ export function bindProperty<T extends Element, K extends keyof T>(
 ): () => void {
   return effect(() => {
     const value = readable.get();
-    if ((el as any)[prop] !== value) {
-      (el as any)[prop] = value;
+    if (el[prop] !== value) {
+      el[prop] = value;
     }
   });
 }
@@ -68,7 +66,7 @@ export function bindStyle(
 ): () => void {
   return effect(() => {
     const value = readable.get();
-    (el.style as any)[styleProp] = value;
+    (el.style as Record<string, string>)[styleProp] = value;
   });
 }
 

@@ -1,10 +1,8 @@
 import {
   Subscriber,
   getGlobalActiveComputation,
-  setGlobalActiveComputation,
-  generateId,
 } from "./dependency";
-import { PathKey, path, matchesPath, isPathKey } from "./path";
+import { PathKey, matchesPath } from "./path";
 import { getSairinConfig, getSairinLogger } from "./config";
 
 export {
@@ -46,7 +44,7 @@ function pathToString(p: PathKey): string {
   return p.raw;
 }
 
-export function getOrCreateNode<T>(
+export function getOrCreateNode(
   p: PathKey,
   kind: ReactiveKind,
 ): ReactiveNode {
@@ -154,7 +152,7 @@ export function unsubscribe(node: ReactiveNode, fn: Subscriber): void {
 
 export function notifySubscribers(node: ReactiveNode): void {
   node.version++;
-  const called = new Set<Function>();
+  const called = new Set<Subscriber>();
   for (const fn of node.subscribers) {
     if (called.has(fn)) continue;
     called.add(fn);
@@ -217,13 +215,12 @@ export function trackNode(node: ReactiveNode): void {
   const computation = getGlobalActiveComputation();
   if (computation) {
     // Check for circular dependencies
-    const checked = (computation as any).__circularCheck as
-      | Set<ReactiveNode>
-      | undefined;
+    let checked = circularCheckMap.get(computation);
     if (!checked) {
-      (computation as any).__circularCheck = new Set<ReactiveNode>();
+      checked = new Set<ReactiveNode>();
+      circularCheckMap.set(computation, checked);
     }
-    const nodes = (computation as any).__circularCheck as Set<ReactiveNode>;
+    const nodes = checked;
 
     if (nodes.has(node)) {
       const logger = getSairinLogger();
@@ -355,8 +352,9 @@ export function scheduleIncrementalCleanup(
     for (const node of chunk) {
       node.subscribers.clear();
       if (node.kind === "derived") {
-        (node as any).dirty = true;
-        (node as any).cached = undefined;
+        const derived = node as DerivedNode<unknown>;
+        derived.dirty = true;
+        derived.cached = undefined;
       }
     }
     cleanupIndex += chunkSize;
@@ -388,10 +386,13 @@ export function capRetainedMemory(nodes: ReactiveNode[]): void {
   for (const node of nodes) {
     node.subscribers.clear();
     if (node.kind === "derived") {
-      (node as any).cached = undefined;
-      (node as any).dirty = true;
+      const derived = node as DerivedNode<unknown>;
+      derived.cached = undefined;
+      derived.dirty = true;
     }
   }
 }
+
+const circularCheckMap = new WeakMap<Subscriber, Set<ReactiveNode>>();
 
 export { path, matchesPath, isPathKey, type PathKey } from "./path";

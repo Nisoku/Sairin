@@ -31,7 +31,7 @@ export function reactive<T extends object>(
   const storePath = isPathKey(basePath)
     ? basePath.raw
     : basePath || `store_${id}`;
-  const result: any = {};
+  const result: Record<string, unknown> = {};
   const signal$ = signal(path(storePath, "$"), obj);
 
   for (const key of Object.keys(obj) as (keyof T)[]) {
@@ -45,19 +45,19 @@ export function reactive<T extends object>(
           if (prop === "length") return target.get().length;
           if (typeof prop === "number") return target.get()[prop];
           if (prop === "get") return () => target.get();
-          return (target.get() as any)[prop];
+          return (target.get() as Record<string, unknown>)[prop];
         },
         set(target, prop, newValue) {
           if (prop === "length") {
             const arr = [...target.get()];
             arr.length = newValue;
-            target.set(arr as any);
+            target.set(arr);
             return true;
           }
           if (typeof prop === "number") {
             const arr = [...target.get()];
             arr[prop] = newValue;
-            target.set(arr as any);
+            target.set(arr);
             return true;
           }
           return false;
@@ -118,7 +118,7 @@ export function setReactive<T extends object>(
   for (const key of Object.keys(value) as (keyof T)[]) {
     const propSignal = reactiveObj[key];
     if (propSignal && propSignal instanceof Signal) {
-      (propSignal as Signal<any>).set(value[key]);
+      (propSignal as Signal<unknown>).set(value[key]);
     }
   }
   reactiveObj.$.set(value);

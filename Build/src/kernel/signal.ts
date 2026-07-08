@@ -7,16 +7,13 @@ import {
   getOrCreateNode,
   getNode,
   isLocked,
-  checkLock,
   resolveAlias,
-  hasNode,
   assertLock,
   isPathKey,
   type PathKey,
   type SignalNode,
 } from "./graph";
 import { generateUniqueId } from "./dependency";
-import { getSairinConfig, getSairinLogger } from "./config";
 import { derived, type Derived } from "./derived";
 import { path } from "./path";
 
@@ -77,25 +74,16 @@ export class Signal<T> {
   }
 
   map<U>(fn: (value: T) => U): Derived<U> {
-    const src = this;
-    return derived(path(...src.path.segments, `$map${++mapSeq}`), () => fn(src.get()));
+    return derived(path(...this.path.segments, `$map${++mapSeq}`), () =>
+      fn(this.get()),
+    );
   }
 
-  pipe<A, B, C>(
-    ...fns: [
-      (t: T) => A,
-      (a: A) => B,
-      (b: B) => C,
-    ]
-  ): Derived<C>;
-  pipe<A, B>(
-    ...fns: [(t: T) => A, (a: A) => B]
-  ): Derived<B>;
-  pipe<A>(
-    ...fns: [(t: T) => A]
-  ): Derived<A>;
-  pipe(...fns: Array<(v: any) => any>): Derived<any> {
-    return this.map((v) => fns.reduce((acc, fn) => fn(acc), v));
+  pipe<A, B, C>(...fns: [(t: T) => A, (a: A) => B, (b: B) => C]): Derived<C>;
+  pipe<A, B>(...fns: [(t: T) => A, (a: A) => B]): Derived<B>;
+  pipe<A>(...fns: [(t: T) => A]): Derived<A>;
+  pipe(...fns: Array<(v: unknown) => unknown>): Derived<unknown> {
+    return this.map((v) => fns.reduce((acc, fn) => fn(acc), v as unknown));
   }
 }
 
@@ -111,7 +99,7 @@ export function signal<T>(pathOrInitial: PathKey | T, initial?: T): Signal<T> {
     // Check for existing signal node and return it if found
     const existingNode = getNode(path);
     if (existingNode && existingNode.kind === "signal") {
-      return new Signal(path, (existingNode as any).value, false);
+      return new Signal(path, (existingNode as SignalNode<T>).value, false);
     }
     return new Signal(path, initial as T, true);
   }
