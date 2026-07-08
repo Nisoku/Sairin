@@ -17,6 +17,8 @@ import {
 } from "./graph";
 import { generateUniqueId } from "./dependency";
 import { getSairinConfig, getSairinLogger } from "./config";
+import { derived, type Derived } from "./derived";
+import { path } from "./path";
 
 export class Signal<T> {
   readonly id: number;
@@ -73,7 +75,31 @@ export class Signal<T> {
   get version(): number {
     return this._node.version;
   }
+
+  map<U>(fn: (value: T) => U): Derived<U> {
+    const src = this;
+    return derived(path(...src.path.segments, `$map${++mapSeq}`), () => fn(src.get()));
+  }
+
+  pipe<A, B, C>(
+    ...fns: [
+      (t: T) => A,
+      (a: A) => B,
+      (b: B) => C,
+    ]
+  ): Derived<C>;
+  pipe<A, B>(
+    ...fns: [(t: T) => A, (a: A) => B]
+  ): Derived<B>;
+  pipe<A>(
+    ...fns: [(t: T) => A]
+  ): Derived<A>;
+  pipe(...fns: Array<(v: any) => any>): Derived<any> {
+    return this.map((v) => fns.reduce((acc, fn) => fn(acc), v));
+  }
 }
+
+let mapSeq = 0;
 
 export function signal<T>(pathOrInitial: PathKey | T, initial?: T): Signal<T> {
   if (isPathKey(pathOrInitial)) {

@@ -14,6 +14,7 @@ import {
   bindInputValue,
   type Readable,
 } from '../src/dom/bindings';
+import { find, findAll } from '../src/dom/selectors';
 
 beforeEach(() => {
   __resetRegistryForTesting();
@@ -607,5 +608,69 @@ describe('Integration Patterns', () => {
 
       document.body.removeChild(input);
     });
+  });
+});
+
+describe('find / findAll', () => {
+  test('find returns first matching element', () => {
+    const div = document.createElement('div');
+    div.innerHTML = '<span class="a"></span><span class="a"></span>';
+    document.body.appendChild(div);
+
+    const result = find('.a', div);
+    expect(result).toBeTruthy();
+    expect(result!.tagName).toBe('SPAN');
+
+    document.body.removeChild(div);
+  });
+
+  test('find returns null when no match', () => {
+    const div = document.createElement('div');
+    const result = find('.nonexistent', div);
+    expect(result).toBeNull();
+  });
+
+  test('findAll returns all matches', () => {
+    const div = document.createElement('div');
+    div.innerHTML = '<span class="a"></span><span class="b"></span><span class="a"></span>';
+    document.body.appendChild(div);
+
+    const result = findAll('.a', div);
+    expect(result).toHaveLength(2);
+
+    document.body.removeChild(div);
+  });
+
+  test('findAll returns empty array when no match', () => {
+    const div = document.createElement('div');
+    const result = findAll('.nonexistent', div);
+    expect(result).toEqual([]);
+  });
+
+  test('find with generic type parameter', () => {
+    const div = document.createElement('div');
+    div.innerHTML = '<input type="text" class="my-input">';
+    document.body.appendChild(div);
+
+    const input = find<HTMLInputElement>('.my-input', div);
+    expect(input).toBeTruthy();
+    expect(input!.type).toBe('text');
+
+    document.body.removeChild(div);
+  });
+
+  test('find defaults to document when no parent given', () => {
+    document.body.innerHTML = '<div id="root-doc"></div>';
+    const el = find('#root-doc');
+    expect(el).toBeTruthy();
+    expect(el!.id).toBe('root-doc');
+    document.body.innerHTML = '';
+  });
+
+  test('findAll defaults to document when no parent given', () => {
+    document.body.innerHTML = '<span class="g"></span><span class="g"></span>';
+    const results = findAll('.g');
+    expect(results.length).toBeGreaterThanOrEqual(2);
+    document.body.innerHTML = '';
   });
 });
