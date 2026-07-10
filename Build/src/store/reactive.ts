@@ -91,7 +91,10 @@ export function reactive<T extends object>(
         target[prop as string] = reactive(newValue, childPath);
       } else {
         const parentSegments = (target.$ as Signal<T>).path.segments;
-        target[prop as string] = signal(path(...parentSegments, String(prop)), newValue);
+        target[prop as string] = signal(
+          path(...parentSegments, String(prop)),
+          newValue,
+        );
       }
       return true;
     },
