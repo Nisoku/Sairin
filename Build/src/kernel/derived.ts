@@ -7,13 +7,14 @@ import {
   unsubscribe,
   notifySubscribers,
   getOrCreateNode,
-  getNode,
   getAllNodes,
+  isPathKey,
   type PathKey,
   type DerivedNode,
   type ReactiveNode,
 } from "./graph";
 import { generateUniqueId } from "./dependency";
+import { path } from "./path";
 
 export interface DerivedOptions {
   eager?: boolean;
@@ -126,12 +127,29 @@ export class Derived<T> {
   get version(): number {
     return this._node.version;
   }
+
+  map<U>(fn: (value: T) => U): Derived<U> {
+    return derived(path(...this.path.segments, `$map${++mapSeq}`), () =>
+      fn(this.get()),
+    );
+  }
+
+  pipe(...fns: Array<(v: unknown) => unknown>): Derived<unknown> {
+    return this.map((v) => fns.reduce((acc, fn) => fn(acc), v as unknown));
+  }
 }
+
+let mapSeq = 0;
 
 export function derived<T>(
   path: PathKey,
   fn: () => T,
   options?: DerivedOptions,
 ): Derived<T> {
+  if (!isPathKey(path)) {
+    throw new Error(
+      `derived() requires a valid PathKey as first argument. Got ${typeof path}. Use path(...) to create a path.`,
+    );
+  }
   return new Derived(path, fn, options);
 }

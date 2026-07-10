@@ -304,6 +304,12 @@ describe('derived', () => {
     expect(totalCount.get()).toBe(6);
     expect(itemNames.get()).toBe('date, elderberry');
   });
+
+  test('should throw when called without a PathKey', () => {
+    expect(() => {
+      (derived as any)(() => 42);
+    }).toThrow("derived() requires a valid PathKey as first argument");
+  });
 });
 
 describe('effect', () => {
@@ -404,5 +410,84 @@ describe('path', () => {
   test('should create simple paths', () => {
     const p = path("user", "name");
     expect(p.raw).toBe("/user/name");
+  });
+});
+
+describe('Signal.map', () => {
+  test('should transform value', () => {
+    const sig = new Signal(path("test", "map"), 5);
+    const doubled = sig.map(x => x * 2);
+    expect(doubled.get()).toBe(10);
+  });
+
+  test('should reactively update', () => {
+    const sig = new Signal(path("test", "mapRx"), 5);
+    const doubled = sig.map(x => x * 2);
+    expect(doubled.get()).toBe(10);
+
+    sig.set(10);
+    expect(doubled.get()).toBe(20);
+  });
+
+  test('should change type', () => {
+    const sig = new Signal(path("test", "mapType"), 42);
+    const str = sig.map(x => `Value: ${x}`);
+    expect(str.get()).toBe("Value: 42");
+
+    sig.set(100);
+    expect(str.get()).toBe("Value: 100");
+  });
+
+  test('should work on Derived inputs', () => {
+    const a = new Signal(path("test", "mapDerA"), 3);
+    const b = new Signal(path("test", "mapDerB"), 4);
+    const sum = derived(path("test", "mapSum"), () => a.get() + b.get());
+    const doubled = sum.map(x => x * 2);
+
+    expect(doubled.get()).toBe(14);
+
+    a.set(5);
+    expect(doubled.get()).toBe(18);
+  });
+
+  test('should chain multiple .map() calls', () => {
+    const sig = new Signal(path("test", "mapChain"), 2);
+    const result = sig.map(x => x * 3).map(x => x + 1).map(x => `n=${x}`);
+
+    expect(result.get()).toBe("n=7");
+
+    sig.set(5);
+    expect(result.get()).toBe("n=16");
+  });
+});
+
+describe('Signal.pipe', () => {
+  test('should chain transforms', () => {
+    const sig = new Signal(path("test", "pipe"), 5);
+    const result = sig.pipe(
+      (x: unknown) => (x as number) * 2,
+      (x: unknown) => (x as number) + 1,
+      (x: unknown) => `Value: ${x as number}`,
+    );
+    expect(result.get()).toBe("Value: 11");
+  });
+
+  test('should reactively update through chain', () => {
+    const sig = new Signal(path("test", "pipeRx"), 5);
+    const result = sig.pipe(
+      (x: unknown) => (x as number) * 2,
+      (x: unknown) => (x as number) + 1,
+    );
+    expect(result.get()).toBe(11);
+
+    sig.set(10);
+    expect(result.get()).toBe(21);
+  });
+
+  test('single function pipe equals map', () => {
+    const sig = new Signal(path("test", "pipeEq"), 5);
+    const piped = sig.pipe((x: unknown) => (x as number) * 2);
+    const mapped = sig.map(x => x * 2);
+    expect(piped.get()).toBe(mapped.get());
   });
 });

@@ -72,6 +72,8 @@ export {
   type LockViolationBehavior,
 } from "./config";
 
+export type Readable<T> = Signal<T> | Derived<T>;
+
 export function createSignal<T>(path: PathKey, value: T): Signal<T> {
   return new Signal(path, value);
 }

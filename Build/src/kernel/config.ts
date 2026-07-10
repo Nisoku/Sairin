@@ -11,7 +11,7 @@ export interface SairinConfig {
   satori: SatoriInstance;
 }
 
-let currentConfig: SairinConfig = {
+const currentConfig: SairinConfig = {
   lockViolation: "throw",
   satori: createSatori({ logLevel: "debug" }),
 };

@@ -73,7 +73,7 @@ export function flow<T>(fn: (signal: AbortSignal) => Promise<T>): Flow<T> {
 
       try {
         await currentPromise;
-      } catch (e) {
+      } catch {
         // Ignore abort errors
       }
     },
@@ -152,7 +152,7 @@ export function pipeline<T, R>(
 
       try {
         await currentPromise;
-      } catch (e) {
+      } catch {
         // Ignore abort errors
       }
     },

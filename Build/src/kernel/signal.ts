@@ -7,16 +7,15 @@ import {
   getOrCreateNode,
   getNode,
   isLocked,
-  checkLock,
   resolveAlias,
-  hasNode,
   assertLock,
   isPathKey,
   type PathKey,
   type SignalNode,
 } from "./graph";
 import { generateUniqueId } from "./dependency";
-import { getSairinConfig, getSairinLogger } from "./config";
+import { derived, type Derived } from "./derived";
+import { path } from "./path";
 
 export class Signal<T> {
   readonly id: number;
@@ -73,7 +72,19 @@ export class Signal<T> {
   get version(): number {
     return this._node.version;
   }
+
+  map<U>(fn: (value: T) => U): Derived<U> {
+    return derived(path(...this.path.segments, `$map${++mapSeq}`), () =>
+      fn(this.get()),
+    );
+  }
+
+  pipe(...fns: Array<(v: unknown) => unknown>): Derived<unknown> {
+    return this.map((v) => fns.reduce((acc, fn) => fn(acc), v as unknown));
+  }
 }
+
+let mapSeq = 0;
 
 export function signal<T>(pathOrInitial: PathKey | T, initial?: T): Signal<T> {
   if (isPathKey(pathOrInitial)) {
@@ -85,7 +96,7 @@ export function signal<T>(pathOrInitial: PathKey | T, initial?: T): Signal<T> {
     // Check for existing signal node and return it if found
     const existingNode = getNode(path);
     if (existingNode && existingNode.kind === "signal") {
-      return new Signal(path, (existingNode as any).value, false);
+      return new Signal(path, (existingNode as SignalNode<T>).value, false);
     }
     return new Signal(path, initial as T, true);
   }

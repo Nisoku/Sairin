@@ -33,7 +33,7 @@ Sairin is a fine-grained reactive UI framework built around a virtual filesystem
 ## Quick Start
 
 ```typescript
-import { signal, effect, path } from 'sairin';
+import { signal, effect, path } from '@nisoku/sairin';
 
 const count = signal(path("counter", "value"), 0);
 

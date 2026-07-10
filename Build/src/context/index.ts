@@ -1,10 +1,10 @@
 export interface Context<T> {
   defaultValue: T;
-  Provider: (props: { value: T; children?: any }) => () => void;
+  Provider: (props: { value: T; children?: unknown }) => () => void;
   consume: () => T;
 }
 
-const contextStacks = new Map<symbol, any[]>();
+const contextStacks = new Map<symbol, unknown[]>();
 
 export function createContext<T>(defaultValue: T, name?: string): Context<T> {
   const contextId = Symbol(name);
@@ -12,7 +12,7 @@ export function createContext<T>(defaultValue: T, name?: string): Context<T> {
 
   return {
     defaultValue,
-    Provider: ({ value }: { value: T; children?: any }) => {
+    Provider: ({ value }: { value: T; children?: unknown }) => {
       const stack = contextStacks.get(contextId)!;
       stack.push(value);
 
@@ -25,14 +25,14 @@ export function createContext<T>(defaultValue: T, name?: string): Context<T> {
       if (!stack || stack.length === 0) {
         return defaultValue;
       }
-      return stack[stack.length - 1];
+      return stack[stack.length - 1] as T;
     },
   };
 }
 
 export interface ProviderProps<T> {
   value: T;
-  children?: any;
+  children?: unknown;
 }
 
 export function useContext<T>(context: Context<T>): T {
@@ -46,7 +46,7 @@ export function useContextProvider<T>(
   return context.Provider({ value });
 }
 
-export interface CreateContextOptions<T> {
+export interface CreateContextOptions<_T> {
   name?: string;
   strict?: boolean;
 }

@@ -149,7 +149,7 @@ export function resourceWithSignal<T>(
 }
 
 export interface SuspenseConfig {
-  fallback: any;
+  fallback: unknown;
   timeout?: number;
 }
 
@@ -160,7 +160,7 @@ export class SuspenseBoundary {
     path("suspense", this.id, "error"),
     null,
   );
-  private fallback: any;
+  private fallback: unknown;
 
   constructor(config: SuspenseConfig) {
     this.fallback = config.fallback;
@@ -174,7 +174,7 @@ export class SuspenseBoundary {
     return this.error;
   }
 
-  getFallback(): any {
+  getFallback(): unknown {
     return this.fallback;
   }
 
